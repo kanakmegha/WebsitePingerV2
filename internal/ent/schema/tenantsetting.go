@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -32,6 +33,10 @@ func (TenantSetting) Fields() []ent.Field {
 			Default(86400),
 		field.Int("email_auth_interval_seconds").
 			Default(300),
+		field.Int("ssl_min_expiry_days").
+			Default(30),
+		field.Int("domain_min_expiry_days").
+			Default(30),
 		field.Time("updated_at").
 			Default(time.Now),
 	}
@@ -44,7 +49,8 @@ func (TenantSetting) Edges() []ent.Edge {
 			Ref("settings").
 			Field("tenant_id").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

@@ -86,6 +86,16 @@ func EmailAuthIntervalSeconds(v int) predicate.TenantSetting {
 	return predicate.TenantSetting(sql.FieldEQ(FieldEmailAuthIntervalSeconds, v))
 }
 
+// SslMinExpiryDays applies equality check predicate on the "ssl_min_expiry_days" field. It's identical to SslMinExpiryDaysEQ.
+func SslMinExpiryDays(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldEQ(FieldSslMinExpiryDays, v))
+}
+
+// DomainMinExpiryDays applies equality check predicate on the "domain_min_expiry_days" field. It's identical to DomainMinExpiryDaysEQ.
+func DomainMinExpiryDays(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldEQ(FieldDomainMinExpiryDays, v))
+}
+
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.TenantSetting {
 	return predicate.TenantSetting(sql.FieldEQ(FieldUpdatedAt, v))
@@ -309,6 +319,86 @@ func EmailAuthIntervalSecondsLT(v int) predicate.TenantSetting {
 // EmailAuthIntervalSecondsLTE applies the LTE predicate on the "email_auth_interval_seconds" field.
 func EmailAuthIntervalSecondsLTE(v int) predicate.TenantSetting {
 	return predicate.TenantSetting(sql.FieldLTE(FieldEmailAuthIntervalSeconds, v))
+}
+
+// SslMinExpiryDaysEQ applies the EQ predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysEQ(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldEQ(FieldSslMinExpiryDays, v))
+}
+
+// SslMinExpiryDaysNEQ applies the NEQ predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysNEQ(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldNEQ(FieldSslMinExpiryDays, v))
+}
+
+// SslMinExpiryDaysIn applies the In predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysIn(vs ...int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldIn(FieldSslMinExpiryDays, vs...))
+}
+
+// SslMinExpiryDaysNotIn applies the NotIn predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysNotIn(vs ...int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldNotIn(FieldSslMinExpiryDays, vs...))
+}
+
+// SslMinExpiryDaysGT applies the GT predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysGT(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldGT(FieldSslMinExpiryDays, v))
+}
+
+// SslMinExpiryDaysGTE applies the GTE predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysGTE(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldGTE(FieldSslMinExpiryDays, v))
+}
+
+// SslMinExpiryDaysLT applies the LT predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysLT(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldLT(FieldSslMinExpiryDays, v))
+}
+
+// SslMinExpiryDaysLTE applies the LTE predicate on the "ssl_min_expiry_days" field.
+func SslMinExpiryDaysLTE(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldLTE(FieldSslMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysEQ applies the EQ predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysEQ(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldEQ(FieldDomainMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysNEQ applies the NEQ predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysNEQ(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldNEQ(FieldDomainMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysIn applies the In predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysIn(vs ...int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldIn(FieldDomainMinExpiryDays, vs...))
+}
+
+// DomainMinExpiryDaysNotIn applies the NotIn predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysNotIn(vs ...int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldNotIn(FieldDomainMinExpiryDays, vs...))
+}
+
+// DomainMinExpiryDaysGT applies the GT predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysGT(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldGT(FieldDomainMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysGTE applies the GTE predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysGTE(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldGTE(FieldDomainMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysLT applies the LT predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysLT(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldLT(FieldDomainMinExpiryDays, v))
+}
+
+// DomainMinExpiryDaysLTE applies the LTE predicate on the "domain_min_expiry_days" field.
+func DomainMinExpiryDaysLTE(v int) predicate.TenantSetting {
+	return predicate.TenantSetting(sql.FieldLTE(FieldDomainMinExpiryDays, v))
 }
 
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.

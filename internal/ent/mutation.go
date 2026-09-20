@@ -9373,6 +9373,10 @@ type TenantSettingMutation struct {
 	adddomain_interval_seconds     *int
 	email_auth_interval_seconds    *int
 	addemail_auth_interval_seconds *int
+	ssl_min_expiry_days            *int
+	addssl_min_expiry_days         *int
+	domain_min_expiry_days         *int
+	adddomain_min_expiry_days      *int
 	updated_at                     *time.Time
 	clearedFields                  map[string]struct{}
 	tenant                         *uuid.UUID
@@ -9802,6 +9806,118 @@ func (m *TenantSettingMutation) ResetEmailAuthIntervalSeconds() {
 	m.addemail_auth_interval_seconds = nil
 }
 
+// SetSslMinExpiryDays sets the "ssl_min_expiry_days" field.
+func (m *TenantSettingMutation) SetSslMinExpiryDays(i int) {
+	m.ssl_min_expiry_days = &i
+	m.addssl_min_expiry_days = nil
+}
+
+// SslMinExpiryDays returns the value of the "ssl_min_expiry_days" field in the mutation.
+func (m *TenantSettingMutation) SslMinExpiryDays() (r int, exists bool) {
+	v := m.ssl_min_expiry_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSslMinExpiryDays returns the old "ssl_min_expiry_days" field's value of the TenantSetting entity.
+// If the TenantSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TenantSettingMutation) OldSslMinExpiryDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSslMinExpiryDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSslMinExpiryDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSslMinExpiryDays: %w", err)
+	}
+	return oldValue.SslMinExpiryDays, nil
+}
+
+// AddSslMinExpiryDays adds i to the "ssl_min_expiry_days" field.
+func (m *TenantSettingMutation) AddSslMinExpiryDays(i int) {
+	if m.addssl_min_expiry_days != nil {
+		*m.addssl_min_expiry_days += i
+	} else {
+		m.addssl_min_expiry_days = &i
+	}
+}
+
+// AddedSslMinExpiryDays returns the value that was added to the "ssl_min_expiry_days" field in this mutation.
+func (m *TenantSettingMutation) AddedSslMinExpiryDays() (r int, exists bool) {
+	v := m.addssl_min_expiry_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSslMinExpiryDays resets all changes to the "ssl_min_expiry_days" field.
+func (m *TenantSettingMutation) ResetSslMinExpiryDays() {
+	m.ssl_min_expiry_days = nil
+	m.addssl_min_expiry_days = nil
+}
+
+// SetDomainMinExpiryDays sets the "domain_min_expiry_days" field.
+func (m *TenantSettingMutation) SetDomainMinExpiryDays(i int) {
+	m.domain_min_expiry_days = &i
+	m.adddomain_min_expiry_days = nil
+}
+
+// DomainMinExpiryDays returns the value of the "domain_min_expiry_days" field in the mutation.
+func (m *TenantSettingMutation) DomainMinExpiryDays() (r int, exists bool) {
+	v := m.domain_min_expiry_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDomainMinExpiryDays returns the old "domain_min_expiry_days" field's value of the TenantSetting entity.
+// If the TenantSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TenantSettingMutation) OldDomainMinExpiryDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDomainMinExpiryDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDomainMinExpiryDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDomainMinExpiryDays: %w", err)
+	}
+	return oldValue.DomainMinExpiryDays, nil
+}
+
+// AddDomainMinExpiryDays adds i to the "domain_min_expiry_days" field.
+func (m *TenantSettingMutation) AddDomainMinExpiryDays(i int) {
+	if m.adddomain_min_expiry_days != nil {
+		*m.adddomain_min_expiry_days += i
+	} else {
+		m.adddomain_min_expiry_days = &i
+	}
+}
+
+// AddedDomainMinExpiryDays returns the value that was added to the "domain_min_expiry_days" field in this mutation.
+func (m *TenantSettingMutation) AddedDomainMinExpiryDays() (r int, exists bool) {
+	v := m.adddomain_min_expiry_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDomainMinExpiryDays resets all changes to the "domain_min_expiry_days" field.
+func (m *TenantSettingMutation) ResetDomainMinExpiryDays() {
+	m.domain_min_expiry_days = nil
+	m.adddomain_min_expiry_days = nil
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (m *TenantSettingMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
@@ -9899,7 +10015,7 @@ func (m *TenantSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TenantSettingMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.tenant != nil {
 		fields = append(fields, tenantsetting.FieldTenantID)
 	}
@@ -9917,6 +10033,12 @@ func (m *TenantSettingMutation) Fields() []string {
 	}
 	if m.email_auth_interval_seconds != nil {
 		fields = append(fields, tenantsetting.FieldEmailAuthIntervalSeconds)
+	}
+	if m.ssl_min_expiry_days != nil {
+		fields = append(fields, tenantsetting.FieldSslMinExpiryDays)
+	}
+	if m.domain_min_expiry_days != nil {
+		fields = append(fields, tenantsetting.FieldDomainMinExpiryDays)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, tenantsetting.FieldUpdatedAt)
@@ -9941,6 +10063,10 @@ func (m *TenantSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.DomainIntervalSeconds()
 	case tenantsetting.FieldEmailAuthIntervalSeconds:
 		return m.EmailAuthIntervalSeconds()
+	case tenantsetting.FieldSslMinExpiryDays:
+		return m.SslMinExpiryDays()
+	case tenantsetting.FieldDomainMinExpiryDays:
+		return m.DomainMinExpiryDays()
 	case tenantsetting.FieldUpdatedAt:
 		return m.UpdatedAt()
 	}
@@ -9964,6 +10090,10 @@ func (m *TenantSettingMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldDomainIntervalSeconds(ctx)
 	case tenantsetting.FieldEmailAuthIntervalSeconds:
 		return m.OldEmailAuthIntervalSeconds(ctx)
+	case tenantsetting.FieldSslMinExpiryDays:
+		return m.OldSslMinExpiryDays(ctx)
+	case tenantsetting.FieldDomainMinExpiryDays:
+		return m.OldDomainMinExpiryDays(ctx)
 	case tenantsetting.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
 	}
@@ -10017,6 +10147,20 @@ func (m *TenantSettingMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEmailAuthIntervalSeconds(v)
 		return nil
+	case tenantsetting.FieldSslMinExpiryDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSslMinExpiryDays(v)
+		return nil
+	case tenantsetting.FieldDomainMinExpiryDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDomainMinExpiryDays(v)
+		return nil
 	case tenantsetting.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -10047,6 +10191,12 @@ func (m *TenantSettingMutation) AddedFields() []string {
 	if m.addemail_auth_interval_seconds != nil {
 		fields = append(fields, tenantsetting.FieldEmailAuthIntervalSeconds)
 	}
+	if m.addssl_min_expiry_days != nil {
+		fields = append(fields, tenantsetting.FieldSslMinExpiryDays)
+	}
+	if m.adddomain_min_expiry_days != nil {
+		fields = append(fields, tenantsetting.FieldDomainMinExpiryDays)
+	}
 	return fields
 }
 
@@ -10065,6 +10215,10 @@ func (m *TenantSettingMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDomainIntervalSeconds()
 	case tenantsetting.FieldEmailAuthIntervalSeconds:
 		return m.AddedEmailAuthIntervalSeconds()
+	case tenantsetting.FieldSslMinExpiryDays:
+		return m.AddedSslMinExpiryDays()
+	case tenantsetting.FieldDomainMinExpiryDays:
+		return m.AddedDomainMinExpiryDays()
 	}
 	return nil, false
 }
@@ -10108,6 +10262,20 @@ func (m *TenantSettingMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddEmailAuthIntervalSeconds(v)
+		return nil
+	case tenantsetting.FieldSslMinExpiryDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSslMinExpiryDays(v)
+		return nil
+	case tenantsetting.FieldDomainMinExpiryDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDomainMinExpiryDays(v)
 		return nil
 	}
 	return fmt.Errorf("unknown TenantSetting numeric field %s", name)
@@ -10153,6 +10321,12 @@ func (m *TenantSettingMutation) ResetField(name string) error {
 		return nil
 	case tenantsetting.FieldEmailAuthIntervalSeconds:
 		m.ResetEmailAuthIntervalSeconds()
+		return nil
+	case tenantsetting.FieldSslMinExpiryDays:
+		m.ResetSslMinExpiryDays()
+		return nil
+	case tenantsetting.FieldDomainMinExpiryDays:
+		m.ResetDomainMinExpiryDays()
 		return nil
 	case tenantsetting.FieldUpdatedAt:
 		m.ResetUpdatedAt()

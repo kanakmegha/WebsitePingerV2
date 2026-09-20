@@ -8,8 +8,9 @@
 	let currentPage = $state(1);
 	const pageSize = 10;
 
-	let totalPages = $derived(Math.ceil(checks.length / pageSize) || 1);
-	let paginatedChecks = $derived(checks.slice((currentPage - 1) * pageSize, currentPage * pageSize));
+	let httpChecks = $derived(checks.filter((c) => c.check_type === 'http'));
+	let totalPages = $derived(Math.ceil(httpChecks.length / pageSize) || 1);
+	let paginatedChecks = $derived(httpChecks.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 </script>
 
 <div class="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur dark:bg-slate-900/80 shadow-xl">

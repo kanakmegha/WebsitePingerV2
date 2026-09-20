@@ -9,7 +9,9 @@
 		dns_interval_seconds: 300,
 		ssl_interval_seconds: 3600,
 		domain_interval_seconds: 86400,
-		email_auth_interval_seconds: 300
+		email_auth_interval_seconds: 300,
+		ssl_min_expiry_days: 30,
+		domain_min_expiry_days: 30
 	});
 
 	let isLoading = $state(true);
@@ -41,6 +43,8 @@
 		if (settings.ssl_interval_seconds < 3600) errs.push('SSL Expiry interval must be >= 3600 seconds (1 hour)');
 		if (settings.domain_interval_seconds < 86400) errs.push('Domain Expiry interval must be >= 86400 seconds (24 hours)');
 		if (settings.email_auth_interval_seconds < 300) errs.push('Email Auth interval must be >= 300 seconds (5 mins)');
+		if (settings.ssl_min_expiry_days !== undefined && settings.ssl_min_expiry_days < 1) errs.push('SSL warning days threshold must be at least 1 day');
+		if (settings.domain_min_expiry_days !== undefined && settings.domain_min_expiry_days < 1) errs.push('Domain warning days threshold must be at least 1 day');
 		return errs;
 	});
 
@@ -184,7 +188,7 @@
 					</div>
 
 					<!-- Email Auth Interval -->
-					<div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2 sm:col-span-2">
+					<div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
 						<div class="flex items-center justify-between">
 							<label for="email-int" class="text-xs font-bold text-slate-200">SPF / DMARC Email Security</label>
 							<span class="text-[10px] font-mono text-emerald-400 font-semibold">Min: 300s (5m)</span>
@@ -198,6 +202,59 @@
 								class="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-mono text-slate-100 focus:border-emerald-500 focus:outline-none"
 							/>
 							<span class="text-xs text-slate-400 font-mono">sec</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Part 5: Minimum Expiry Warning Thresholds -->
+			<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-xl space-y-6">
+				<div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+					<div class="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-400">
+						<ShieldAlert class="h-5 w-5" />
+					</div>
+					<div>
+						<h2 class="text-base font-bold text-white">Expiration Warning Thresholds</h2>
+						<p class="text-xs text-slate-400">Specify the minimum days left to trigger a Warning state on your dashboard</p>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<!-- SSL Minimum Expiry Days -->
+					<div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
+						<div class="flex items-center justify-between">
+							<label for="ssl-min" class="text-xs font-bold text-slate-200">SSL Certificate Warning</label>
+							<span class="text-[10px] font-mono text-amber-400 font-semibold">Days left threshold</span>
+						</div>
+						<div class="flex items-center gap-2">
+							<input
+								id="ssl-min"
+								type="number"
+								min="1"
+								bind:value={settings.ssl_min_expiry_days}
+								placeholder="30"
+								class="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-mono text-slate-100 focus:border-amber-500 focus:outline-none"
+							/>
+							<span class="text-xs text-slate-400 font-mono">days</span>
+						</div>
+					</div>
+
+					<!-- Domain Minimum Expiry Days -->
+					<div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
+						<div class="flex items-center justify-between">
+							<label for="domain-min" class="text-xs font-bold text-slate-200">Domain WHOIS Warning</label>
+							<span class="text-[10px] font-mono text-amber-400 font-semibold">Days left threshold</span>
+						</div>
+						<div class="flex items-center gap-2">
+							<input
+								id="domain-min"
+								type="number"
+								min="1"
+								bind:value={settings.domain_min_expiry_days}
+								placeholder="30"
+								class="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-mono text-slate-100 focus:border-amber-500 focus:outline-none"
+							/>
+							<span class="text-xs text-slate-400 font-mono">days</span>
 						</div>
 					</div>
 				</div>
@@ -261,7 +318,7 @@
 			<button
 				type="submit"
 				disabled={isSaving || validationErrors.length > 0}
-				class="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
+				class="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50 min-h-[44px]"
 			>
 				<Save class="h-4 w-4 stroke-[2.5]" />
 				{isSaving ? 'Saving Configuration...' : 'Save Monitoring Settings'}

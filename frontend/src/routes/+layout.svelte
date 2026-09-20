@@ -34,9 +34,12 @@
 	$effect(() => {
 		const currentPath = $page.url.pathname;
 		const isAuthPage = currentPath === '/login' || currentPath === '/register';
+		const isOnboardingPage = currentPath === '/onboarding';
 
 		if ($authStore.initialized && !$isAuthenticated && !isAuthPage) {
 			goto('/login');
+		} else if ($authStore.initialized && $isAuthenticated && !isBootstrapping && $tenantStore.tenants.length === 0 && !isOnboardingPage) {
+			goto('/onboarding');
 		}
 	});
 </script>
@@ -46,7 +49,7 @@
 	
 	<Navbar />
 
-	<main class="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6">
+	<main class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 		{#if isBootstrapping && $isAuthenticated}
 			<div class="flex flex-col items-center justify-center py-24 space-y-4">
 				<div class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500/20 border-t-emerald-500"></div>

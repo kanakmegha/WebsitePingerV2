@@ -31,6 +31,8 @@ type UpdateSettingsRequest struct {
 	SSLIntervalSeconds       int `json:"ssl_interval_seconds"`
 	DomainIntervalSeconds    int `json:"domain_interval_seconds"`
 	EmailAuthIntervalSeconds int `json:"email_auth_interval_seconds"`
+	SSLMinExpiryDays         int `json:"ssl_min_expiry_days"`
+	DomainMinExpiryDays      int `json:"domain_min_expiry_days"`
 }
 
 // GetSettings retrieves the tenant_settings for the authenticated tenant.
@@ -131,6 +133,12 @@ func (h *SettingsHandler) UpdateSettings(w http.ResponseWriter, r *http.Request)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Email Auth interval must be at least 300 seconds"})
 		return
 	}
+	if req.SSLMinExpiryDays < 1 {
+		req.SSLMinExpiryDays = 30
+	}
+	if req.DomainMinExpiryDays < 1 {
+		req.DomainMinExpiryDays = 30
+	}
 
 	tx, err := h.client.Tx(ctx)
 	if err != nil {
@@ -156,6 +164,8 @@ func (h *SettingsHandler) UpdateSettings(w http.ResponseWriter, r *http.Request)
 			SetSslIntervalSeconds(req.SSLIntervalSeconds).
 			SetDomainIntervalSeconds(req.DomainIntervalSeconds).
 			SetEmailAuthIntervalSeconds(req.EmailAuthIntervalSeconds).
+			SetSslMinExpiryDays(req.SSLMinExpiryDays).
+			SetDomainMinExpiryDays(req.DomainMinExpiryDays).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
 	} else if err == nil {
@@ -166,6 +176,8 @@ func (h *SettingsHandler) UpdateSettings(w http.ResponseWriter, r *http.Request)
 			SetSslIntervalSeconds(req.SSLIntervalSeconds).
 			SetDomainIntervalSeconds(req.DomainIntervalSeconds).
 			SetEmailAuthIntervalSeconds(req.EmailAuthIntervalSeconds).
+			SetSslMinExpiryDays(req.SSLMinExpiryDays).
+			SetDomainMinExpiryDays(req.DomainMinExpiryDays).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
 	}
@@ -242,5 +254,7 @@ func (h *SettingsHandler) getOrCreateTenantSettings(ctx context.Context, tenantI
 		SetSslIntervalSeconds(3600).
 		SetDomainIntervalSeconds(86400).
 		SetEmailAuthIntervalSeconds(300).
+		SetSslMinExpiryDays(30).
+		SetDomainMinExpiryDays(30).
 		Save(ctx)
 }

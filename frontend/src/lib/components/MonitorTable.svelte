@@ -1,12 +1,26 @@
 <script lang="ts">
 	import type { Monitor } from '$lib/types';
 	import StatusBadge from './StatusBadge.svelte';
-	import { ArrowUpDown, ExternalLink, Globe } from '@lucide/svelte';
+	import { ArrowUpDown, ExternalLink, Globe, Trash2 } from '@lucide/svelte';
+	import { deleteMonitor } from '$lib/services/api';
+	import { monitorsStore } from '$lib/stores/monitors';
 
 	let { monitors = [] }: { monitors?: Monitor[] } = $props();
 
 	let sortKey = $state<'name' | 'avg_latency_ms' | 'ssl_days_remaining' | 'status'>('name');
 	let sortAsc = $state(true);
+
+	async function handleDelete(m: Monitor) {
+		if (!confirm(`Are you sure you want to delete monitor "${m.name}"?`)) {
+			return;
+		}
+		try {
+			await deleteMonitor(m.id);
+			monitorsStore.remove(m.id);
+		} catch (err: any) {
+			alert(err.message || 'Failed to delete monitor');
+		}
+	}
 
 	function toggleSort(key: typeof sortKey) {
 		if (sortKey === key) {
@@ -116,8 +130,10 @@
 							<td class="px-6 py-4 font-mono">
 								{#if m.status === 'down'}
 									<span class="text-red-400 font-bold">Failed</span>
+								{:else if m.avg_latency_ms !== undefined && m.avg_latency_ms !== null}
+									<span class="text-emerald-400">{m.avg_latency_ms} ms</span>
 								{:else}
-									<span class="text-emerald-400">{m.avg_latency_ms || 42} ms</span>
+									<span class="text-slate-500">N/A</span>
 								{/if}
 							</td>
 
@@ -136,13 +152,24 @@
 							</td>
 
 							<td class="px-6 py-4 text-right">
-								<a
-									href="/monitor/{m.id}"
-									class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:underline"
-								>
-									Details
-									<ExternalLink class="h-3.5 w-3.5" />
-								</a>
+								<div class="flex items-center justify-end gap-3">
+									<a
+										href="/monitor/{m.id}"
+										class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:underline"
+									>
+										Details
+										<ExternalLink class="h-3.5 w-3.5" />
+									</a>
+									<button
+										type="button"
+										onclick={() => handleDelete(m)}
+										title="Delete monitor"
+										aria-label="Delete monitor"
+										class="flex h-7 w-7 items-center justify-center rounded-md border border-slate-800 bg-slate-800/40 text-slate-400 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400 transition"
+									>
+										<Trash2 class="h-3.5 w-3.5" />
+									</button>
+								</div>
 							</td>
 						</tr>
 					{/each}

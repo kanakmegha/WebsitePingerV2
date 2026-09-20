@@ -98,6 +98,34 @@ func (tsc *TenantSettingCreate) SetNillableEmailAuthIntervalSeconds(i *int) *Ten
 	return tsc
 }
 
+// SetSslMinExpiryDays sets the "ssl_min_expiry_days" field.
+func (tsc *TenantSettingCreate) SetSslMinExpiryDays(i int) *TenantSettingCreate {
+	tsc.mutation.SetSslMinExpiryDays(i)
+	return tsc
+}
+
+// SetNillableSslMinExpiryDays sets the "ssl_min_expiry_days" field if the given value is not nil.
+func (tsc *TenantSettingCreate) SetNillableSslMinExpiryDays(i *int) *TenantSettingCreate {
+	if i != nil {
+		tsc.SetSslMinExpiryDays(*i)
+	}
+	return tsc
+}
+
+// SetDomainMinExpiryDays sets the "domain_min_expiry_days" field.
+func (tsc *TenantSettingCreate) SetDomainMinExpiryDays(i int) *TenantSettingCreate {
+	tsc.mutation.SetDomainMinExpiryDays(i)
+	return tsc
+}
+
+// SetNillableDomainMinExpiryDays sets the "domain_min_expiry_days" field if the given value is not nil.
+func (tsc *TenantSettingCreate) SetNillableDomainMinExpiryDays(i *int) *TenantSettingCreate {
+	if i != nil {
+		tsc.SetDomainMinExpiryDays(*i)
+	}
+	return tsc
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tsc *TenantSettingCreate) SetUpdatedAt(t time.Time) *TenantSettingCreate {
 	tsc.mutation.SetUpdatedAt(t)
@@ -186,6 +214,14 @@ func (tsc *TenantSettingCreate) defaults() {
 		v := tenantsetting.DefaultEmailAuthIntervalSeconds
 		tsc.mutation.SetEmailAuthIntervalSeconds(v)
 	}
+	if _, ok := tsc.mutation.SslMinExpiryDays(); !ok {
+		v := tenantsetting.DefaultSslMinExpiryDays
+		tsc.mutation.SetSslMinExpiryDays(v)
+	}
+	if _, ok := tsc.mutation.DomainMinExpiryDays(); !ok {
+		v := tenantsetting.DefaultDomainMinExpiryDays
+		tsc.mutation.SetDomainMinExpiryDays(v)
+	}
 	if _, ok := tsc.mutation.UpdatedAt(); !ok {
 		v := tenantsetting.DefaultUpdatedAt()
 		tsc.mutation.SetUpdatedAt(v)
@@ -215,6 +251,12 @@ func (tsc *TenantSettingCreate) check() error {
 	}
 	if _, ok := tsc.mutation.EmailAuthIntervalSeconds(); !ok {
 		return &ValidationError{Name: "email_auth_interval_seconds", err: errors.New(`ent: missing required field "TenantSetting.email_auth_interval_seconds"`)}
+	}
+	if _, ok := tsc.mutation.SslMinExpiryDays(); !ok {
+		return &ValidationError{Name: "ssl_min_expiry_days", err: errors.New(`ent: missing required field "TenantSetting.ssl_min_expiry_days"`)}
+	}
+	if _, ok := tsc.mutation.DomainMinExpiryDays(); !ok {
+		return &ValidationError{Name: "domain_min_expiry_days", err: errors.New(`ent: missing required field "TenantSetting.domain_min_expiry_days"`)}
 	}
 	if _, ok := tsc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "TenantSetting.updated_at"`)}
@@ -276,6 +318,14 @@ func (tsc *TenantSettingCreate) createSpec() (*TenantSetting, *sqlgraph.CreateSp
 	if value, ok := tsc.mutation.EmailAuthIntervalSeconds(); ok {
 		_spec.SetField(tenantsetting.FieldEmailAuthIntervalSeconds, field.TypeInt, value)
 		_node.EmailAuthIntervalSeconds = value
+	}
+	if value, ok := tsc.mutation.SslMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldSslMinExpiryDays, field.TypeInt, value)
+		_node.SslMinExpiryDays = value
+	}
+	if value, ok := tsc.mutation.DomainMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldDomainMinExpiryDays, field.TypeInt, value)
+		_node.DomainMinExpiryDays = value
 	}
 	if value, ok := tsc.mutation.UpdatedAt(); ok {
 		_spec.SetField(tenantsetting.FieldUpdatedAt, field.TypeTime, value)

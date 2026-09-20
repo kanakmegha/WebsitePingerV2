@@ -31,6 +31,10 @@ type TenantSetting struct {
 	DomainIntervalSeconds int `json:"domain_interval_seconds,omitempty"`
 	// EmailAuthIntervalSeconds holds the value of the "email_auth_interval_seconds" field.
 	EmailAuthIntervalSeconds int `json:"email_auth_interval_seconds,omitempty"`
+	// SslMinExpiryDays holds the value of the "ssl_min_expiry_days" field.
+	SslMinExpiryDays int `json:"ssl_min_expiry_days,omitempty"`
+	// DomainMinExpiryDays holds the value of the "domain_min_expiry_days" field.
+	DomainMinExpiryDays int `json:"domain_min_expiry_days,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -64,7 +68,7 @@ func (*TenantSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case tenantsetting.FieldHTTPIntervalSeconds, tenantsetting.FieldDNSIntervalSeconds, tenantsetting.FieldSslIntervalSeconds, tenantsetting.FieldDomainIntervalSeconds, tenantsetting.FieldEmailAuthIntervalSeconds:
+		case tenantsetting.FieldHTTPIntervalSeconds, tenantsetting.FieldDNSIntervalSeconds, tenantsetting.FieldSslIntervalSeconds, tenantsetting.FieldDomainIntervalSeconds, tenantsetting.FieldEmailAuthIntervalSeconds, tenantsetting.FieldSslMinExpiryDays, tenantsetting.FieldDomainMinExpiryDays:
 			values[i] = new(sql.NullInt64)
 		case tenantsetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -126,6 +130,18 @@ func (ts *TenantSetting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email_auth_interval_seconds", values[i])
 			} else if value.Valid {
 				ts.EmailAuthIntervalSeconds = int(value.Int64)
+			}
+		case tenantsetting.FieldSslMinExpiryDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ssl_min_expiry_days", values[i])
+			} else if value.Valid {
+				ts.SslMinExpiryDays = int(value.Int64)
+			}
+		case tenantsetting.FieldDomainMinExpiryDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field domain_min_expiry_days", values[i])
+			} else if value.Valid {
+				ts.DomainMinExpiryDays = int(value.Int64)
 			}
 		case tenantsetting.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -191,6 +207,12 @@ func (ts *TenantSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email_auth_interval_seconds=")
 	builder.WriteString(fmt.Sprintf("%v", ts.EmailAuthIntervalSeconds))
+	builder.WriteString(", ")
+	builder.WriteString("ssl_min_expiry_days=")
+	builder.WriteString(fmt.Sprintf("%v", ts.SslMinExpiryDays))
+	builder.WriteString(", ")
+	builder.WriteString("domain_min_expiry_days=")
+	builder.WriteString(fmt.Sprintf("%v", ts.DomainMinExpiryDays))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(ts.UpdatedAt.Format(time.ANSIC))

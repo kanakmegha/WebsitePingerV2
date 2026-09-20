@@ -1,30 +1,30 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import Chart from 'chart.js/auto';
+	import type { MonitorCheck } from '$lib/types';
 
-	let { period = '24h' }: { period?: '24h' | '7d' | '30d' } = $props();
+	let { period = '24h', checks = [] }: { period?: '24h' | '7d' | '30d'; checks?: MonitorCheck[] } = $props();
 
 	let canvas: HTMLCanvasElement;
 	let chartInstance: Chart | null = null;
 
-	function generateChartData(p: string) {
-		const points = p === '24h' ? 24 : p === '7d' ? 28 : 30;
-		const labels: string[] = [];
-		const latencies: number[] = [];
+	function extractChartData() {
+		// Filter HTTP checks that contain http_result
+		const httpChecks = checks
+			.filter((c) => c.check_type === 'http' && c.http_result)
+			.slice()
+			.reverse(); // Chronological order
 
-		const now = new Date();
-		for (let i = points; i >= 0; i--) {
-			if (p === '24h') {
-				const d = new Date(now.getTime() - i * 3600000);
-				labels.push(`${d.getHours()}:00`);
-			} else {
-				const d = new Date(now.getTime() - i * 86400000);
-				labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-			}
-			const base = 35 + Math.floor(Math.random() * 20);
-			const spike = i === 5 ? 180 : 0;
-			latencies.push(base + spike);
+		if (httpChecks.length === 0) {
+			return { labels: ['No Check Data'], latencies: [0] };
 		}
+
+		const labels = httpChecks.map((c) => {
+			const d = new Date(c.checked_at);
+			return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		});
+
+		const latencies = httpChecks.map((c) => c.http_result?.response_time_ms || 0);
 
 		return { labels, latencies };
 	}
@@ -33,7 +33,7 @@
 		if (!canvas) return;
 		if (chartInstance) chartInstance.destroy();
 
-		const { labels, latencies } = generateChartData(period);
+		const { labels, latencies } = extractChartData();
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
@@ -54,7 +54,7 @@
 						backgroundColor: gradient,
 						fill: true,
 						tension: 0.35,
-						pointRadius: 2,
+						pointRadius: 3,
 						pointHoverRadius: 6,
 						pointBackgroundColor: '#10b981'
 					}
@@ -93,7 +93,7 @@
 	}
 
 	$effect(() => {
-		if (period && canvas) {
+		if ((period || checks) && canvas) {
 			renderChart();
 		}
 	});

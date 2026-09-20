@@ -27,13 +27,13 @@ var (
 				Symbol:     "alerts_monitors_alerts",
 				Columns:    []*schema.Column{AlertsColumns[4]},
 				RefColumns: []*schema.Column{MonitorsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "alerts_tenants_alerts",
 				Columns:    []*schema.Column{AlertsColumns[5]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -56,13 +56,13 @@ var (
 				Symbol:     "alert_events_alerts_events",
 				Columns:    []*schema.Column{AlertEventsColumns[4]},
 				RefColumns: []*schema.Column{AlertsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "alert_events_monitors_alert_events",
 				Columns:    []*schema.Column{AlertEventsColumns[5]},
 				RefColumns: []*schema.Column{MonitorsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -89,7 +89,7 @@ var (
 				Symbol:     "dns_check_results_monitor_checks_dns_result",
 				Columns:    []*schema.Column{DNSCheckResultsColumns[9]},
 				RefColumns: []*schema.Column{MonitorChecksColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -111,7 +111,7 @@ var (
 				Symbol:     "domain_check_results_monitor_checks_domain_result",
 				Columns:    []*schema.Column{DomainCheckResultsColumns[4]},
 				RefColumns: []*schema.Column{MonitorChecksColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -134,7 +134,7 @@ var (
 				Symbol:     "http_check_results_monitor_checks_http_result",
 				Columns:    []*schema.Column{HTTPCheckResultsColumns[5]},
 				RefColumns: []*schema.Column{MonitorChecksColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -156,13 +156,20 @@ var (
 				Symbol:     "memberships_tenants_memberships",
 				Columns:    []*schema.Column{MembershipsColumns[3]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "memberships_users_memberships",
 				Columns:    []*schema.Column{MembershipsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "membership_user_id_tenant_id",
+				Unique:  true,
+				Columns: []*schema.Column{MembershipsColumns[4], MembershipsColumns[3]},
 			},
 		},
 	}
@@ -190,7 +197,7 @@ var (
 				Symbol:     "monitors_tenants_monitors",
 				Columns:    []*schema.Column{MonitorsColumns[10]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -225,7 +232,7 @@ var (
 				Symbol:     "monitor_checks_monitors_checks",
 				Columns:    []*schema.Column{MonitorChecksColumns[5]},
 				RefColumns: []*schema.Column{MonitorsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -263,7 +270,7 @@ var (
 				Symbol:     "monitor_check_configs_monitors_check_configs",
 				Columns:    []*schema.Column{MonitorCheckConfigsColumns[8]},
 				RefColumns: []*schema.Column{MonitorsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -297,7 +304,7 @@ var (
 				Symbol:     "notification_channels_tenants_notification_channels",
 				Columns:    []*schema.Column{NotificationChannelsColumns[4]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -320,7 +327,7 @@ var (
 				Symbol:     "ssl_check_results_monitor_checks_ssl_result",
 				Columns:    []*schema.Column{SslCheckResultsColumns[5]},
 				RefColumns: []*schema.Column{MonitorChecksColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -345,6 +352,8 @@ var (
 		{Name: "ssl_interval_seconds", Type: field.TypeInt, Default: 3600},
 		{Name: "domain_interval_seconds", Type: field.TypeInt, Default: 86400},
 		{Name: "email_auth_interval_seconds", Type: field.TypeInt, Default: 300},
+		{Name: "ssl_min_expiry_days", Type: field.TypeInt, Default: 30},
+		{Name: "domain_min_expiry_days", Type: field.TypeInt, Default: 30},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "tenant_id", Type: field.TypeUUID, Unique: true},
 	}
@@ -356,16 +365,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tenant_settings_tenants_settings",
-				Columns:    []*schema.Column{TenantSettingsColumns[7]},
+				Columns:    []*schema.Column{TenantSettingsColumns[9]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "tenantsetting_tenant_id",
 				Unique:  true,
-				Columns: []*schema.Column{TenantSettingsColumns[7]},
+				Columns: []*schema.Column{TenantSettingsColumns[9]},
 			},
 		},
 	}

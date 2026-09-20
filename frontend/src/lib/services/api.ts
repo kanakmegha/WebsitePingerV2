@@ -1,4 +1,4 @@
-import type { Monitor, MonitorCheck, AuthResponse, TenantSettings, TenantDTO, AlertEvent } from '$lib/types';
+import type { Monitor, MonitorCheck, MonitorStatus, AuthResponse, TenantSettings, TenantDTO, AlertEvent } from '$lib/types';
 import { tenantStore } from '$lib/stores/tenant';
 import { authStore } from '$lib/stores/auth';
 import { get } from 'svelte/store';
@@ -29,8 +29,9 @@ let isRefreshingTenants = false;
 export async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
 	const token = getAuthToken();
 	const isAuthEndpoint = endpoint.startsWith('/auth/');
+	const isOrgOnboardingEndpoint = endpoint.startsWith('/orgs/') || endpoint === '/me/tenants';
 
-	if (token && !isAuthEndpoint) {
+	if (token && !isAuthEndpoint && !isOrgOnboardingEndpoint) {
 		const tenantId = getSelectedTenantId();
 		if (!tenantId) {
 			console.error(`[API FETCH ERROR] Attempted request to ${endpoint} without a selected tenant.`);
@@ -133,11 +134,11 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
 	return data;
 }
 
-export async function registerUser(email: string, password: string): Promise<AuthResponse> {
+export async function registerUser(email: string, password: string, tenantName?: string): Promise<AuthResponse> {
 	const res = await fetch(`${API_BASE}/auth/register`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email, password })
+		body: JSON.stringify({ email, password, tenant_name: tenantName })
 	});
 
 	if (!res.ok) {
@@ -150,6 +151,36 @@ export async function registerUser(email: string, password: string): Promise<Aut
 		tenantStore.setTenants(data.tenants);
 	}
 	return data;
+}
+
+export async function createOrganization(name: string): Promise<TenantDTO> {
+	const res = await apiFetch('/orgs/create', {
+		method: 'POST',
+		body: JSON.stringify({ name })
+	});
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		throw new Error(err.error || 'Failed to create organization');
+	}
+	const tenant: TenantDTO = await res.json();
+	await fetchUserTenants();
+	tenantStore.selectTenant(tenant.id);
+	return tenant;
+}
+
+export async function joinOrganization(tenantId: string): Promise<TenantDTO> {
+	const res = await apiFetch('/orgs/join', {
+		method: 'POST',
+		body: JSON.stringify({ tenant_id: tenantId })
+	});
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		throw new Error(err.error || 'Failed to join organization');
+	}
+	const tenant: TenantDTO = await res.json();
+	await fetchUserTenants();
+	tenantStore.selectTenant(tenant.id);
+	return tenant;
 }
 
 export async function fetchUserTenants(): Promise<TenantDTO[]> {
@@ -166,26 +197,58 @@ export async function fetchUserTenants(): Promise<TenantDTO[]> {
 	return [];
 }
 
-export async function fetchMonitors(): Promise<Monitor[]> {
-	const token = getAuthToken();
-	if (!token) return MOCK_MONITORS;
+function mapMonitorFromBackend(m: any): Monitor {
+	const checks: any[] = m.edges?.checks || m.edges?.Checks || [];
+	const check_configs: any[] = m.check_configs || m.edges?.check_configs || m.edges?.CheckConfigs || [];
+	
+	// Find latest HTTP check result
+	const latestHttpCheck = checks.find((c) => c.check_type === 'http' && (c.http_result || c.edges?.http_result || c.edges?.HTTPResult));
+	const httpRes = latestHttpCheck?.http_result || latestHttpCheck?.edges?.http_result || latestHttpCheck?.edges?.HTTPResult;
+	
+	// Find latest SSL check result
+	const latestSslCheck = checks.find((c) => c.check_type === 'ssl' && (c.ssl_result || c.edges?.ssl_result || c.edges?.SslResult));
+	const sslRes = latestSslCheck?.ssl_result || latestSslCheck?.edges?.ssl_result || latestSslCheck?.edges?.SslResult;
+	
+	// Find latest DNS check result
+	const latestDnsCheck = checks.find((c) => c.check_type === 'dns' && (c.dns_result || c.edges?.dns_result || c.edges?.DNSResult));
+	const dnsRes = latestDnsCheck?.dns_result || latestDnsCheck?.edges?.dns_result || latestDnsCheck?.edges?.DNSResult;
 
+	// Find latest Domain check result
+	const latestDomainCheck = checks.find((c) => c.check_type === 'domain' && (c.domain_result || c.edges?.domain_result || c.edges?.DomainResult));
+	const domainRes = latestDomainCheck?.domain_result || latestDomainCheck?.edges?.domain_result || latestDomainCheck?.edges?.DomainResult;
+
+	// Find most recent check timestamp across all checks
+	const mostRecentCheck = checks.length > 0 ? checks[0] : null;
+	
+	const status: MonitorStatus = checks.length > 0
+		? (checks[0].status === 'success' ? 'up' : 'down')
+		: (m.is_active ? 'up' : 'down');
+
+	return {
+		...m,
+		check_configs,
+		status,
+		avg_latency_ms: httpRes?.response_time_ms ?? m.avg_latency_ms,
+		ssl_days_remaining: sslRes?.days_remaining ?? m.ssl_days_remaining,
+		last_checked_at: mostRecentCheck?.checked_at ?? m.last_checked_at,
+		latest_ssl: sslRes,
+		latest_dns: dnsRes,
+		latest_domain: domainRes,
+		latest_http: httpRes
+	};
+}
+
+export async function fetchMonitors(): Promise<Monitor[]> {
 	try {
 		const res = await apiFetch('/monitors');
 		if (res.ok) {
 			const data = await res.json();
-			return data.map((m: any) => ({
-				...m,
-				status: m.is_active ? 'up' : 'down',
-				avg_latency_ms: Math.floor(Math.random() * 80) + 20,
-				ssl_days_remaining: 120,
-				uptime_pct_24h: 99.9
-			}));
+			return data.map(mapMonitorFromBackend);
 		}
 	} catch (e) {
-		console.warn('Backend connection issue, serving fallback monitors:', e);
+		console.warn('Backend connection issue fetching monitors:', e);
 	}
-	return MOCK_MONITORS;
+	return [];
 }
 
 export async function fetchMonitorById(id: string): Promise<Monitor | null> {
@@ -193,13 +256,7 @@ export async function fetchMonitorById(id: string): Promise<Monitor | null> {
 		const res = await apiFetch(`/monitors/${id}`);
 		if (res.ok) {
 			const m = await res.json();
-			return {
-				...m,
-				status: m.is_active ? 'up' : 'down',
-				avg_latency_ms: 42,
-				ssl_days_remaining: 120,
-				uptime_pct_24h: 99.9
-			};
+			return mapMonitorFromBackend(m);
 		}
 	} catch (e) {
 		console.warn('Failed to fetch monitor details:', e);
@@ -282,40 +339,32 @@ export async function createMonitor(data: {
 	};
 }
 
-export async function fetchChecks(monitorId: string): Promise<MonitorCheck[]> {
+export async function fetchChecks(monitorId: string, checkType?: string): Promise<MonitorCheck[]> {
 	try {
-		const res = await apiFetch(`/monitors/${monitorId}/checks`);
+		const url = checkType ? `/monitors/${monitorId}/checks?type=${checkType}` : `/monitors/${monitorId}/checks`;
+		const res = await apiFetch(url);
 		if (res.ok) {
-			return await res.json();
+			const rawChecks = await res.json();
+			return rawChecks.map((chk: any) => ({
+				...chk,
+				http_result: chk.http_result || chk.edges?.http_result || chk.edges?.HTTPResult,
+				ssl_result: chk.ssl_result || chk.edges?.ssl_result || chk.edges?.SslResult,
+				dns_result: chk.dns_result || chk.edges?.dns_result || chk.edges?.DNSResult,
+				domain_result: chk.domain_result || chk.edges?.domain_result || chk.edges?.DomainResult,
+			}));
 		}
 	} catch (e) {
-		console.warn('Backend unavailable, serving mock check series');
+		console.warn('Failed to fetch monitor checks from backend:', e);
 	}
+	return [];
+}
 
-	const checks: MonitorCheck[] = [];
-	const now = Date.now();
-	for (let i = 0; i < 50; i++) {
-		const isFail = i === 12 || i === 13;
-		checks.push({
-			id: `chk-${i}`,
-			monitor_id: monitorId,
-			check_type: 'http',
-			status: isFail ? 'failure' : 'success',
-			error: isFail ? 'HTTP 503 Service Unavailable' : undefined,
-			checked_at: new Date(now - i * 3 * 60000).toISOString(),
-			http_result: {
-				status_code: isFail ? 503 : 200,
-				response_time_ms: isFail ? 1500 : Math.floor(Math.random() * 60) + 25,
-				response_size_bytes: 14250,
-				final_url: 'https://google.com'
-			},
-			ssl_result: {
-				expiry_date: new Date(now + 180 * 86400000).toISOString(),
-				issuer: 'Google Trust Services LLC',
-				valid: true,
-				days_remaining: 180
-			}
-		});
+export async function deleteMonitor(monitorId: string): Promise<void> {
+	const res = await apiFetch(`/monitors/${monitorId}`, {
+		method: 'DELETE'
+	});
+	if (!res.ok) {
+		const errData = await res.json().catch(() => ({}));
+		throw new Error(errData.error || 'Failed to delete monitor');
 	}
-	return checks;
 }

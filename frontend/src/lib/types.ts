@@ -10,6 +10,8 @@ export interface TenantSettings {
 	ssl_interval_seconds: number;
 	domain_interval_seconds: number;
 	email_auth_interval_seconds: number;
+	ssl_min_expiry_days?: number;
+	domain_min_expiry_days?: number;
 	updated_at?: string;
 }
 
@@ -89,6 +91,10 @@ export interface Monitor {
 	avg_latency_ms?: number;
 	ssl_days_remaining?: number;
 	uptime_pct_24h?: number;
+	latest_ssl?: SSLCheckResult;
+	latest_dns?: DNSCheckResult;
+	latest_domain?: DomainCheckResult;
+	latest_http?: HTTPCheckResult;
 }
 
 export interface AlertEvent {

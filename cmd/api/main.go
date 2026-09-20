@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/migrate"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/user"
 	"github.com/kanakmegha/WebsitePingerV2/internal/handler"
 	customMiddleware "github.com/kanakmegha/WebsitePingerV2/internal/middleware"
@@ -100,8 +101,8 @@ func main() {
 	for i := 1; i <= 10; i++ {
 		client, err = ent.Open("postgres", dbURL)
 		if err == nil {
-			// Test ping connection
-			if err = client.Schema.Create(context.Background()); err == nil {
+			// Apply database schema migrations with explicit foreign key support
+			if err = client.Schema.Create(context.Background(), migrate.WithForeignKeys(true)); err == nil {
 				log.Println("[API] Connected to database and applied schema migrations successfully.")
 				break
 			}
@@ -138,7 +139,7 @@ func main() {
 		})
 	})
 
-	// Healthcheck endpoint
+	 // Healthcheck endpoint
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -158,6 +159,8 @@ func main() {
 		r.Use(customMiddleware.RequireAuth(client))
 
 		r.Get("/api/me/tenants", authH.GetUserTenants)
+		r.Post("/api/orgs/create", authH.CreateOrganization)
+		r.Post("/api/orgs/join", authH.JoinOrganization)
 
 		r.Get("/api/monitors", monitorH.List)
 		r.Post("/api/monitors", monitorH.Create)

@@ -63,6 +63,7 @@
 				<input
 					id="login-email"
 					type="email"
+					autocomplete="username"
 					required
 					bind:value={email}
 					placeholder="admin@company.com"
@@ -80,6 +81,7 @@
 				<input
 					id="login-pass"
 					type="password"
+					autocomplete="current-password"
 					required
 					bind:value={password}
 					placeholder="••••••••••••"

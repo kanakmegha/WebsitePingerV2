@@ -3,18 +3,19 @@
 	import { registerUser } from '$lib/services/api';
 	import { authStore } from '$lib/stores/auth';
 	import { toastStore } from '$lib/stores/toast';
-	import { Activity, UserPlus, AlertCircle, Lock, Mail } from '@lucide/svelte';
+	import { Activity, UserPlus, AlertCircle, Lock, Mail, Building2 } from '@lucide/svelte';
 
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
+	let tenantName = $state('');
 	let loading = $state(false);
 	let errorMessage = $state('');
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (!email || !password) {
-			errorMessage = 'Please enter both email and password';
+		if (!email || !password || !tenantName) {
+			errorMessage = 'Please enter email, password, and organization name';
 			return;
 		}
 
@@ -27,9 +28,9 @@
 		errorMessage = '';
 
 		try {
-			const res = await registerUser(email, password);
+			const res = await registerUser(email, password, tenantName.trim());
 			authStore.login(res.token, res.user_id, email);
-			toastStore.show('Account created successfully!', 'success');
+			toastStore.show('Account & Organization created successfully!', 'success');
 			goto('/');
 		} catch (err: any) {
 			errorMessage = err.message || 'Registration failed';
@@ -48,7 +49,7 @@
 		<div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 shadow-xl shadow-emerald-500/20">
 			<Activity class="h-6 w-6 text-slate-950" />
 		</div>
-		<h1 class="text-2xl font-extrabold text-white">Create Tenant Account</h1>
+		<h1 class="text-2xl font-extrabold text-white">Create Organization Account</h1>
 		<p class="text-xs text-slate-400">Start monitoring HTTP, SSL, DNS, & WHOIS for free</p>
 	</div>
 
@@ -61,6 +62,23 @@
 		{/if}
 
 		<div>
+			<label for="reg-org" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+				Organization Name
+			</label>
+			<div class="relative mt-2">
+				<Building2 class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+				<input
+					id="reg-org"
+					type="text"
+					required
+					bind:value={tenantName}
+					placeholder="Acme Cloud Inc."
+					class="w-full rounded-xl border border-slate-800 bg-slate-950 py-2.5 pl-10 pr-4 text-xs font-medium text-slate-100 placeholder-slate-600 focus:border-emerald-500 focus:outline-none"
+				/>
+			</div>
+		</div>
+
+		<div>
 			<label for="reg-email" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
 				Email Address
 			</label>
@@ -69,6 +87,7 @@
 				<input
 					id="reg-email"
 					type="email"
+					autocomplete="username"
 					required
 					bind:value={email}
 					placeholder="admin@company.com"
@@ -86,6 +105,7 @@
 				<input
 					id="reg-pass"
 					type="password"
+					autocomplete="new-password"
 					required
 					bind:value={password}
 					placeholder="••••••••••••"
@@ -103,6 +123,7 @@
 				<input
 					id="reg-pass-confirm"
 					type="password"
+					autocomplete="new-password"
 					required
 					bind:value={confirmPassword}
 					placeholder="••••••••••••"

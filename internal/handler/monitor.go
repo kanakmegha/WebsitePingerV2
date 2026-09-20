@@ -46,6 +46,13 @@ func (h *MonitorHandler) List(w http.ResponseWriter, r *http.Request) {
 	monitors, err := h.client.Monitor.Query().
 		Where(monitor.TenantID(tenantID)).
 		WithCheckConfigs().
+		WithChecks(func(q *ent.MonitorCheckQuery) {
+			q.Order(ent.Desc(monitorcheck.FieldCheckedAt)).
+				WithHTTPResult().
+				WithSslResult().
+				WithDomainResult().
+				WithDNSResult()
+		}).
 		All(r.Context())
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -75,6 +82,13 @@ func (h *MonitorHandler) Get(w http.ResponseWriter, r *http.Request) {
 			monitor.TenantID(tenantID),
 		).
 		WithCheckConfigs().
+		WithChecks(func(q *ent.MonitorCheckQuery) {
+			q.Order(ent.Desc(monitorcheck.FieldCheckedAt)).
+				WithHTTPResult().
+				WithSslResult().
+				WithDomainResult().
+				WithDNSResult()
+		}).
 		Only(r.Context())
 
 	if err != nil || m == nil {
@@ -243,13 +257,22 @@ func (h *MonitorHandler) GetChecks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Optional check_type query filter
+	checkTypeParam := r.URL.Query().Get("type")
+
 	// Fetch fresh check records directly from PostgreSQL
-	checks, err := h.client.MonitorCheck.Query().
+	query := h.client.MonitorCheck.Query().
 		Where(monitorcheck.MonitorID(m.ID)).
 		WithHTTPResult().
 		WithSslResult().
 		WithDomainResult().
-		WithDNSResult().
+		WithDNSResult()
+
+	if checkTypeParam != "" {
+		query = query.Where(monitorcheck.CheckTypeEQ(monitorcheck.CheckType(checkTypeParam)))
+	}
+
+	checks, err := query.
 		Order(ent.Desc(monitorcheck.FieldCheckedAt)).
 		Limit(50).
 		All(r.Context())

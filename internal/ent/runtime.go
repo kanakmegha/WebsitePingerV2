@@ -205,8 +205,16 @@ func init() {
 	tenantsettingDescEmailAuthIntervalSeconds := tenantsettingFields[6].Descriptor()
 	// tenantsetting.DefaultEmailAuthIntervalSeconds holds the default value on creation for the email_auth_interval_seconds field.
 	tenantsetting.DefaultEmailAuthIntervalSeconds = tenantsettingDescEmailAuthIntervalSeconds.Default.(int)
+	// tenantsettingDescSslMinExpiryDays is the schema descriptor for ssl_min_expiry_days field.
+	tenantsettingDescSslMinExpiryDays := tenantsettingFields[7].Descriptor()
+	// tenantsetting.DefaultSslMinExpiryDays holds the default value on creation for the ssl_min_expiry_days field.
+	tenantsetting.DefaultSslMinExpiryDays = tenantsettingDescSslMinExpiryDays.Default.(int)
+	// tenantsettingDescDomainMinExpiryDays is the schema descriptor for domain_min_expiry_days field.
+	tenantsettingDescDomainMinExpiryDays := tenantsettingFields[8].Descriptor()
+	// tenantsetting.DefaultDomainMinExpiryDays holds the default value on creation for the domain_min_expiry_days field.
+	tenantsetting.DefaultDomainMinExpiryDays = tenantsettingDescDomainMinExpiryDays.Default.(int)
 	// tenantsettingDescUpdatedAt is the schema descriptor for updated_at field.
-	tenantsettingDescUpdatedAt := tenantsettingFields[7].Descriptor()
+	tenantsettingDescUpdatedAt := tenantsettingFields[9].Descriptor()
 	// tenantsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	tenantsetting.DefaultUpdatedAt = tenantsettingDescUpdatedAt.Default.(func() time.Time)
 	// tenantsettingDescID is the schema descriptor for id field.

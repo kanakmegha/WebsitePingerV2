@@ -3,7 +3,7 @@ import type { Monitor, CheckType, MonitorStatus } from '$lib/types';
 import { fetchMonitors, MOCK_MONITORS } from '$lib/services/api';
 
 function createMonitorStore() {
-	const { subscribe, set, update } = writable<Monitor[]>(MOCK_MONITORS);
+	const { subscribe, set, update } = writable<Monitor[]>([]);
 
 	return {
 		subscribe,
@@ -14,6 +14,9 @@ function createMonitorStore() {
 		},
 		add: (monitor: Monitor) => {
 			update((list) => [monitor, ...list]);
+		},
+		remove: (monitorId: string) => {
+			update((list) => list.filter((m) => m.id !== monitorId));
 		},
 		updateStatus: (monitorId: string, status: MonitorStatus, latencyMs?: number) => {
 			update((list) =>

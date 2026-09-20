@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -37,12 +38,15 @@ func (Alert) Edges() []ent.Edge {
 			Ref("alerts").
 			Field("tenant_id").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.From("monitor", Monitor.Type).
 			Ref("alerts").
 			Field("monitor_id").
 			Unique().
-			Required(),
-		edge.To("events", AlertEvent.Type),
+			Required().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("events", AlertEvent.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

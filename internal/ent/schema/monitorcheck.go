@@ -41,7 +41,8 @@ func (MonitorCheck) Edges() []ent.Edge {
 			Ref("checks").
 			Field("monitor_id").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("http_result", HTTPCheckResult.Type).
 			Unique().
 			Annotations(entsql.OnDelete(entsql.Cascade)),

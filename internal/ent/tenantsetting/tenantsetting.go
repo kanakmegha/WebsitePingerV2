@@ -27,6 +27,10 @@ const (
 	FieldDomainIntervalSeconds = "domain_interval_seconds"
 	// FieldEmailAuthIntervalSeconds holds the string denoting the email_auth_interval_seconds field in the database.
 	FieldEmailAuthIntervalSeconds = "email_auth_interval_seconds"
+	// FieldSslMinExpiryDays holds the string denoting the ssl_min_expiry_days field in the database.
+	FieldSslMinExpiryDays = "ssl_min_expiry_days"
+	// FieldDomainMinExpiryDays holds the string denoting the domain_min_expiry_days field in the database.
+	FieldDomainMinExpiryDays = "domain_min_expiry_days"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeTenant holds the string denoting the tenant edge name in mutations.
@@ -51,6 +55,8 @@ var Columns = []string{
 	FieldSslIntervalSeconds,
 	FieldDomainIntervalSeconds,
 	FieldEmailAuthIntervalSeconds,
+	FieldSslMinExpiryDays,
+	FieldDomainMinExpiryDays,
 	FieldUpdatedAt,
 }
 
@@ -75,6 +81,10 @@ var (
 	DefaultDomainIntervalSeconds int
 	// DefaultEmailAuthIntervalSeconds holds the default value on creation for the "email_auth_interval_seconds" field.
 	DefaultEmailAuthIntervalSeconds int
+	// DefaultSslMinExpiryDays holds the default value on creation for the "ssl_min_expiry_days" field.
+	DefaultSslMinExpiryDays int
+	// DefaultDomainMinExpiryDays holds the default value on creation for the "domain_min_expiry_days" field.
+	DefaultDomainMinExpiryDays int
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
@@ -117,6 +127,16 @@ func ByDomainIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
 // ByEmailAuthIntervalSeconds orders the results by the email_auth_interval_seconds field.
 func ByEmailAuthIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmailAuthIntervalSeconds, opts...).ToFunc()
+}
+
+// BySslMinExpiryDays orders the results by the ssl_min_expiry_days field.
+func BySslMinExpiryDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSslMinExpiryDays, opts...).ToFunc()
+}
+
+// ByDomainMinExpiryDays orders the results by the domain_min_expiry_days field.
+func ByDomainMinExpiryDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDomainMinExpiryDays, opts...).ToFunc()
 }
 
 // ByUpdatedAt orders the results by the updated_at field.

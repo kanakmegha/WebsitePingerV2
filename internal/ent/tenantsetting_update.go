@@ -149,6 +149,48 @@ func (tsu *TenantSettingUpdate) AddEmailAuthIntervalSeconds(i int) *TenantSettin
 	return tsu
 }
 
+// SetSslMinExpiryDays sets the "ssl_min_expiry_days" field.
+func (tsu *TenantSettingUpdate) SetSslMinExpiryDays(i int) *TenantSettingUpdate {
+	tsu.mutation.ResetSslMinExpiryDays()
+	tsu.mutation.SetSslMinExpiryDays(i)
+	return tsu
+}
+
+// SetNillableSslMinExpiryDays sets the "ssl_min_expiry_days" field if the given value is not nil.
+func (tsu *TenantSettingUpdate) SetNillableSslMinExpiryDays(i *int) *TenantSettingUpdate {
+	if i != nil {
+		tsu.SetSslMinExpiryDays(*i)
+	}
+	return tsu
+}
+
+// AddSslMinExpiryDays adds i to the "ssl_min_expiry_days" field.
+func (tsu *TenantSettingUpdate) AddSslMinExpiryDays(i int) *TenantSettingUpdate {
+	tsu.mutation.AddSslMinExpiryDays(i)
+	return tsu
+}
+
+// SetDomainMinExpiryDays sets the "domain_min_expiry_days" field.
+func (tsu *TenantSettingUpdate) SetDomainMinExpiryDays(i int) *TenantSettingUpdate {
+	tsu.mutation.ResetDomainMinExpiryDays()
+	tsu.mutation.SetDomainMinExpiryDays(i)
+	return tsu
+}
+
+// SetNillableDomainMinExpiryDays sets the "domain_min_expiry_days" field if the given value is not nil.
+func (tsu *TenantSettingUpdate) SetNillableDomainMinExpiryDays(i *int) *TenantSettingUpdate {
+	if i != nil {
+		tsu.SetDomainMinExpiryDays(*i)
+	}
+	return tsu
+}
+
+// AddDomainMinExpiryDays adds i to the "domain_min_expiry_days" field.
+func (tsu *TenantSettingUpdate) AddDomainMinExpiryDays(i int) *TenantSettingUpdate {
+	tsu.mutation.AddDomainMinExpiryDays(i)
+	return tsu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tsu *TenantSettingUpdate) SetUpdatedAt(t time.Time) *TenantSettingUpdate {
 	tsu.mutation.SetUpdatedAt(t)
@@ -255,6 +297,18 @@ func (tsu *TenantSettingUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if value, ok := tsu.mutation.AddedEmailAuthIntervalSeconds(); ok {
 		_spec.AddField(tenantsetting.FieldEmailAuthIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := tsu.mutation.SslMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldSslMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsu.mutation.AddedSslMinExpiryDays(); ok {
+		_spec.AddField(tenantsetting.FieldSslMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsu.mutation.DomainMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldDomainMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsu.mutation.AddedDomainMinExpiryDays(); ok {
+		_spec.AddField(tenantsetting.FieldDomainMinExpiryDays, field.TypeInt, value)
 	}
 	if value, ok := tsu.mutation.UpdatedAt(); ok {
 		_spec.SetField(tenantsetting.FieldUpdatedAt, field.TypeTime, value)
@@ -427,6 +481,48 @@ func (tsuo *TenantSettingUpdateOne) AddEmailAuthIntervalSeconds(i int) *TenantSe
 	return tsuo
 }
 
+// SetSslMinExpiryDays sets the "ssl_min_expiry_days" field.
+func (tsuo *TenantSettingUpdateOne) SetSslMinExpiryDays(i int) *TenantSettingUpdateOne {
+	tsuo.mutation.ResetSslMinExpiryDays()
+	tsuo.mutation.SetSslMinExpiryDays(i)
+	return tsuo
+}
+
+// SetNillableSslMinExpiryDays sets the "ssl_min_expiry_days" field if the given value is not nil.
+func (tsuo *TenantSettingUpdateOne) SetNillableSslMinExpiryDays(i *int) *TenantSettingUpdateOne {
+	if i != nil {
+		tsuo.SetSslMinExpiryDays(*i)
+	}
+	return tsuo
+}
+
+// AddSslMinExpiryDays adds i to the "ssl_min_expiry_days" field.
+func (tsuo *TenantSettingUpdateOne) AddSslMinExpiryDays(i int) *TenantSettingUpdateOne {
+	tsuo.mutation.AddSslMinExpiryDays(i)
+	return tsuo
+}
+
+// SetDomainMinExpiryDays sets the "domain_min_expiry_days" field.
+func (tsuo *TenantSettingUpdateOne) SetDomainMinExpiryDays(i int) *TenantSettingUpdateOne {
+	tsuo.mutation.ResetDomainMinExpiryDays()
+	tsuo.mutation.SetDomainMinExpiryDays(i)
+	return tsuo
+}
+
+// SetNillableDomainMinExpiryDays sets the "domain_min_expiry_days" field if the given value is not nil.
+func (tsuo *TenantSettingUpdateOne) SetNillableDomainMinExpiryDays(i *int) *TenantSettingUpdateOne {
+	if i != nil {
+		tsuo.SetDomainMinExpiryDays(*i)
+	}
+	return tsuo
+}
+
+// AddDomainMinExpiryDays adds i to the "domain_min_expiry_days" field.
+func (tsuo *TenantSettingUpdateOne) AddDomainMinExpiryDays(i int) *TenantSettingUpdateOne {
+	tsuo.mutation.AddDomainMinExpiryDays(i)
+	return tsuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tsuo *TenantSettingUpdateOne) SetUpdatedAt(t time.Time) *TenantSettingUpdateOne {
 	tsuo.mutation.SetUpdatedAt(t)
@@ -563,6 +659,18 @@ func (tsuo *TenantSettingUpdateOne) sqlSave(ctx context.Context) (_node *TenantS
 	}
 	if value, ok := tsuo.mutation.AddedEmailAuthIntervalSeconds(); ok {
 		_spec.AddField(tenantsetting.FieldEmailAuthIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := tsuo.mutation.SslMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldSslMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsuo.mutation.AddedSslMinExpiryDays(); ok {
+		_spec.AddField(tenantsetting.FieldSslMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsuo.mutation.DomainMinExpiryDays(); ok {
+		_spec.SetField(tenantsetting.FieldDomainMinExpiryDays, field.TypeInt, value)
+	}
+	if value, ok := tsuo.mutation.AddedDomainMinExpiryDays(); ok {
+		_spec.AddField(tenantsetting.FieldDomainMinExpiryDays, field.TypeInt, value)
 	}
 	if value, ok := tsuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(tenantsetting.FieldUpdatedAt, field.TypeTime, value)
