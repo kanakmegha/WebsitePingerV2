@@ -1,2 +1,5 @@
 .DS_Store
 .env
+api
+scheduler
+worker

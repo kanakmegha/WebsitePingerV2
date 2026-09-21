@@ -17,6 +17,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/dnscheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/domaincheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/httpcheckresult"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
@@ -91,6 +92,7 @@ func checkColumn(table, column string) error {
 			dnscheckresult.Table:      dnscheckresult.ValidColumn,
 			domaincheckresult.Table:   domaincheckresult.ValidColumn,
 			httpcheckresult.Table:     httpcheckresult.ValidColumn,
+			invite.Table:              invite.ValidColumn,
 			membership.Table:          membership.ValidColumn,
 			monitor.Table:             monitor.ValidColumn,
 			monitorcheck.Table:        monitorcheck.ValidColumn,

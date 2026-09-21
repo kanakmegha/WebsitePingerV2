@@ -18,6 +18,7 @@
 		LogOut,
 		LogIn,
 		User,
+		Users,
 		Menu,
 		X
 	} from '@lucide/svelte';
@@ -81,6 +82,13 @@
 					>
 						<Settings class="h-4 w-4 text-slate-400" />
 						Settings
+					</a>
+					<a
+						href="/team"
+						class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition {$page.url.pathname === '/team' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'}"
+					>
+						<Users class="h-4 w-4 text-cyan-400" />
+						Team
 					</a>
 				</nav>
 			{/if}
@@ -193,6 +201,14 @@
 				>
 					<Settings class="h-5 w-5 text-slate-400" />
 					Settings
+				</a>
+				<a
+					href="/team"
+					onclick={() => (isMobileMenuOpen = false)}
+					class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition {$page.url.pathname === '/team' ? 'bg-emerald-500/10 text-emerald-400 font-semibold' : 'text-slate-200 hover:bg-slate-900'}"
+				>
+					<Users class="h-5 w-5 text-cyan-400" />
+					Team
 				</a>
 			</div>
 

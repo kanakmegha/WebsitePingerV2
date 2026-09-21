@@ -132,3 +132,31 @@ export interface AuthResponse {
 	tenant_id?: string;
 	tenants?: TenantDTO[];
 }
+
+export interface InviteDetails {
+	id: string;
+	email: string;
+	tenant_id: string;
+	tenant_name: string;
+	role: string;
+	status: string;
+	expires_at: string;
+}
+
+export interface TenantMember {
+	id: string;
+	user_id: string;
+	email: string;
+	role: string;
+	created_at: string;
+}
+
+export interface PendingInvite {
+	id: string;
+	tenant_id: string;
+	email: string;
+	role: string;
+	status: string;
+	expires_at: string;
+	created_at: string;
+}

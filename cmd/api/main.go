@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/migrate"
@@ -146,13 +147,19 @@ func main() {
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
+	emailSvc := email.NewService(email.LoadConfigFromEnv())
+
 	authH := handler.NewAuthHandler(client)
 	monitorH := handler.NewMonitorHandler(client)
 	settingsH := handler.NewSettingsHandler(client)
+	orgH := handler.NewOrgHandler(client, emailSvc)
 
-	// Public Auth Routes
+	// Public Auth & Invite Routes
 	r.Post("/api/auth/register", authH.Register)
 	r.Post("/api/auth/login", authH.Login)
+	r.Get("/api/orgs/invite/{token}", orgH.GetInviteDetails)
+	r.With(customMiddleware.OptionalAuth(client)).Post("/api/orgs/accept", orgH.AcceptInvite)
+	r.With(customMiddleware.OptionalAuth(client)).Post("/api/orgs/accept-invite", orgH.AcceptInvite)
 
 	// Protected Multi-Tenant API Routes
 	r.Group(func(r chi.Router) {
@@ -161,6 +168,10 @@ func main() {
 		r.Get("/api/me/tenants", authH.GetUserTenants)
 		r.Post("/api/orgs/create", authH.CreateOrganization)
 		r.Post("/api/orgs/join", authH.JoinOrganization)
+		r.Get("/api/orgs/members", orgH.ListMembers)
+		r.Get("/api/orgs/invites", orgH.ListInvites)
+		r.Delete("/api/orgs/invites/{id}", orgH.CancelInvite)
+		r.Post("/api/orgs/invite", orgH.InviteUser)
 
 		r.Get("/api/monitors", monitorH.List)
 		r.Post("/api/monitors", monitorH.Create)

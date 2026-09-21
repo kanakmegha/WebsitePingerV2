@@ -11,6 +11,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/dnscheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/domaincheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/httpcheckresult"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
@@ -69,6 +70,24 @@ func init() {
 	httpcheckresultDescID := httpcheckresultFields[0].Descriptor()
 	// httpcheckresult.DefaultID holds the default value on creation for the id field.
 	httpcheckresult.DefaultID = httpcheckresultDescID.Default.(func() uuid.UUID)
+	inviteFields := schema.Invite{}.Fields()
+	_ = inviteFields
+	// inviteDescEmail is the schema descriptor for email field.
+	inviteDescEmail := inviteFields[2].Descriptor()
+	// invite.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	invite.EmailValidator = inviteDescEmail.Validators[0].(func(string) error)
+	// inviteDescToken is the schema descriptor for token field.
+	inviteDescToken := inviteFields[4].Descriptor()
+	// invite.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	invite.TokenValidator = inviteDescToken.Validators[0].(func(string) error)
+	// inviteDescCreatedAt is the schema descriptor for created_at field.
+	inviteDescCreatedAt := inviteFields[7].Descriptor()
+	// invite.DefaultCreatedAt holds the default value on creation for the created_at field.
+	invite.DefaultCreatedAt = inviteDescCreatedAt.Default.(func() time.Time)
+	// inviteDescID is the schema descriptor for id field.
+	inviteDescID := inviteFields[0].Descriptor()
+	// invite.DefaultID holds the default value on creation for the id field.
+	invite.DefaultID = inviteDescID.Default.(func() uuid.UUID)
 	membershipFields := schema.Membership{}.Fields()
 	_ = membershipFields
 	// membershipDescCreatedAt is the schema descriptor for created_at field.

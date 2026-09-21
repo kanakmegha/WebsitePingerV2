@@ -138,6 +138,43 @@ var (
 			},
 		},
 	}
+	// InvitesColumns holds the columns for the "invites" table.
+	InvitesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "email", Type: field.TypeString},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"owner", "admin", "member"}, Default: "member"},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "accepted", "expired"}, Default: "pending"},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// InvitesTable holds the schema information for the "invites" table.
+	InvitesTable = &schema.Table{
+		Name:       "invites",
+		Columns:    InvitesColumns,
+		PrimaryKey: []*schema.Column{InvitesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "invites_tenants_invites",
+				Columns:    []*schema.Column{InvitesColumns[7]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "invite_token",
+				Unique:  true,
+				Columns: []*schema.Column{InvitesColumns[3]},
+			},
+			{
+				Name:    "invite_tenant_id_email",
+				Unique:  false,
+				Columns: []*schema.Column{InvitesColumns[7], InvitesColumns[1]},
+			},
+		},
+	}
 	// MembershipsColumns holds the columns for the "memberships" table.
 	MembershipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -398,6 +435,7 @@ var (
 		DNSCheckResultsTable,
 		DomainCheckResultsTable,
 		HTTPCheckResultsTable,
+		InvitesTable,
 		MembershipsTable,
 		MonitorsTable,
 		MonitorChecksTable,
@@ -418,6 +456,7 @@ func init() {
 	DNSCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
 	DomainCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
 	HTTPCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
+	InvitesTable.ForeignKeys[0].RefTable = TenantsTable
 	MembershipsTable.ForeignKeys[0].RefTable = TenantsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	MonitorsTable.ForeignKeys[0].RefTable = TenantsTable

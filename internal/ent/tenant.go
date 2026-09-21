@@ -43,9 +43,11 @@ type TenantEdges struct {
 	NotificationChannels []*NotificationChannel `json:"notification_channels,omitempty"`
 	// Settings holds the value of the settings edge.
 	Settings *TenantSetting `json:"settings,omitempty"`
+	// Invites holds the value of the invites edge.
+	Invites []*Invite `json:"invites,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -93,6 +95,15 @@ func (e TenantEdges) SettingsOrErr() (*TenantSetting, error) {
 		return nil, &NotFoundError{label: tenantsetting.Label}
 	}
 	return nil, &NotLoadedError{edge: "settings"}
+}
+
+// InvitesOrErr returns the Invites value or an error if the edge
+// was not loaded in eager-loading.
+func (e TenantEdges) InvitesOrErr() ([]*Invite, error) {
+	if e.loadedTypes[5] {
+		return e.Invites, nil
+	}
+	return nil, &NotLoadedError{edge: "invites"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -181,6 +192,11 @@ func (t *Tenant) QueryNotificationChannels() *NotificationChannelQuery {
 // QuerySettings queries the "settings" edge of the Tenant entity.
 func (t *Tenant) QuerySettings() *TenantSettingQuery {
 	return NewTenantClient(t.config).QuerySettings(t)
+}
+
+// QueryInvites queries the "invites" edge of the Tenant entity.
+func (t *Tenant) QueryInvites() *InviteQuery {
+	return NewTenantClient(t.config).QueryInvites(t)
 }
 
 // Update returns a builder for updating this Tenant.

@@ -21,6 +21,9 @@ type DomainCheckResult func(*sql.Selector)
 // HTTPCheckResult is the predicate function for httpcheckresult builders.
 type HTTPCheckResult func(*sql.Selector)
 
+// Invite is the predicate function for invite builders.
+type Invite func(*sql.Selector)
+
 // Membership is the predicate function for membership builders.
 type Membership func(*sql.Selector)
 

@@ -24,7 +24,10 @@
 			const res = await loginUser(email, password);
 			authStore.login(res.token, res.user_id, email);
 			toastStore.show('Logged in successfully', 'success');
-			goto('/');
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const redirectTo = urlParams.get('redirectTo') || '/';
+			goto(redirectTo);
 		} catch (err: any) {
 			errorMessage = err.message || 'Invalid email or password';
 		} finally {

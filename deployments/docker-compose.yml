@@ -32,6 +32,8 @@ services:
       context: ..
       dockerfile: Dockerfile.api
     container_name: pinger_api
+    env_file:
+      - ../.env
     environment:
       DATABASE_URL: "postgres://postgres:postgres@postgres:5432/pinger?sslmode=disable"
       REDIS_ADDR: "redis:6379"
@@ -54,6 +56,8 @@ services:
       context: ..
       dockerfile: Dockerfile.worker
     container_name: pinger_worker
+    env_file:
+      - ../.env
     environment:
       DATABASE_URL: "postgres://postgres:postgres@postgres:5432/pinger?sslmode=disable"
       REDIS_ADDR: "redis:6379"

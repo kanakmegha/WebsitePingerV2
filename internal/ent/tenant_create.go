@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
@@ -151,6 +152,21 @@ func (tc *TenantCreate) SetNillableSettingsID(id *uuid.UUID) *TenantCreate {
 // SetSettings sets the "settings" edge to the TenantSetting entity.
 func (tc *TenantCreate) SetSettings(t *TenantSetting) *TenantCreate {
 	return tc.SetSettingsID(t.ID)
+}
+
+// AddInviteIDs adds the "invites" edge to the Invite entity by IDs.
+func (tc *TenantCreate) AddInviteIDs(ids ...uuid.UUID) *TenantCreate {
+	tc.mutation.AddInviteIDs(ids...)
+	return tc
+}
+
+// AddInvites adds the "invites" edges to the Invite entity.
+func (tc *TenantCreate) AddInvites(i ...*Invite) *TenantCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return tc.AddInviteIDs(ids...)
 }
 
 // Mutation returns the TenantMutation object of the builder.
@@ -338,6 +354,22 @@ func (tc *TenantCreate) createSpec() (*Tenant, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tenantsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.InvitesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvitesTable,
+			Columns: []string{tenant.InvitesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invite.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

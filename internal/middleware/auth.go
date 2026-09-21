@@ -153,6 +153,32 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return RequireAuth(nil)(next)
 }
 
+// OptionalAuth parses Authorization header if present to populate UserID in context, but does not block unauthenticated requests.
+func OptionalAuth(client *ent.Client) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+				token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+					return JWTSecret, nil
+				})
+				if err == nil && token.Valid {
+					if claims, ok := token.Claims.(jwt.MapClaims); ok {
+						if userIDStr, _ := claims["user_id"].(string); userIDStr != "" {
+							if userID, uErr := uuid.Parse(userIDStr); uErr == nil && userID != uuid.Nil {
+								ctx := context.WithValue(r.Context(), UserIDKey, userID)
+								r = r.WithContext(ctx)
+							}
+						}
+					}
+				}
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func GetTenantID(ctx context.Context) uuid.UUID {
 	val, _ := ctx.Value(TenantIDKey).(uuid.UUID)
 	return val

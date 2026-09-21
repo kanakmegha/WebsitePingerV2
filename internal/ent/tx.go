@@ -22,6 +22,8 @@ type Tx struct {
 	DomainCheckResult *DomainCheckResultClient
 	// HTTPCheckResult is the client for interacting with the HTTPCheckResult builders.
 	HTTPCheckResult *HTTPCheckResultClient
+	// Invite is the client for interacting with the Invite builders.
+	Invite *InviteClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
 	// Monitor is the client for interacting with the Monitor builders.
@@ -176,6 +178,7 @@ func (tx *Tx) init() {
 	tx.DNSCheckResult = NewDNSCheckResultClient(tx.config)
 	tx.DomainCheckResult = NewDomainCheckResultClient(tx.config)
 	tx.HTTPCheckResult = NewHTTPCheckResultClient(tx.config)
+	tx.Invite = NewInviteClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.Monitor = NewMonitorClient(tx.config)
 	tx.MonitorCheck = NewMonitorCheckClient(tx.config)

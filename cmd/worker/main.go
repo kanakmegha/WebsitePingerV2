@@ -12,6 +12,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/alert"
 	"github.com/kanakmegha/WebsitePingerV2/internal/checker"
 	"github.com/kanakmegha/WebsitePingerV2/internal/coalescer"
+	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheckconfig"
@@ -68,7 +69,10 @@ func main() {
 
 	limiter := ratelimit.NewRateLimiter(rdb)
 	coalesceEngine := coalescer.NewCoalescer(rdb)
-	alertEng := alert.NewEngine(client, rdb)
+
+	emailCfg := email.LoadConfigFromEnv()
+	emailSvc := email.NewService(emailCfg)
+	alertEng := alert.NewEngine(client, rdb, emailSvc)
 
 	const workerCount = 50
 	var wg sync.WaitGroup
@@ -225,5 +229,5 @@ func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.E
 	if status == monitorcheck.StatusFailure {
 		statusStr = "failure"
 	}
-	alertEng.EvaluateCheck(ctx, job.MonitorID, job.TenantID, statusStr, errMessage)
+	alertEng.EvaluateCheck(ctx, job.MonitorID, job.TenantID, job.CheckType, statusStr, errMessage)
 }

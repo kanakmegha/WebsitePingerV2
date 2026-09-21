@@ -34,11 +34,13 @@
 	$effect(() => {
 		const currentPath = $page.url.pathname;
 		const isAuthPage = currentPath === '/login' || currentPath === '/register';
+		const isInvitePage = currentPath.startsWith('/invite');
 		const isOnboardingPage = currentPath === '/onboarding';
 
-		if ($authStore.initialized && !$isAuthenticated && !isAuthPage) {
-			goto('/login');
-		} else if ($authStore.initialized && $isAuthenticated && !isBootstrapping && $tenantStore.tenants.length === 0 && !isOnboardingPage) {
+		if ($authStore.initialized && !$isAuthenticated && !isAuthPage && !isInvitePage) {
+			const redirectTo = encodeURIComponent($page.url.pathname + $page.url.search);
+			goto(`/login?redirectTo=${redirectTo}`);
+		} else if ($authStore.initialized && $isAuthenticated && !isBootstrapping && $tenantStore.tenants.length === 0 && !isOnboardingPage && !isInvitePage) {
 			goto('/onboarding');
 		}
 	});

@@ -43,5 +43,7 @@ func (Tenant) Edges() []ent.Edge {
 		edge.To("settings", TenantSetting.Type).
 			Unique().
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("invites", Invite.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
