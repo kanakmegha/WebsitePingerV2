@@ -39,6 +39,16 @@ func (Monitor) Fields() []ent.Field {
 			Default(10),
 		field.Bool("is_active").
 			Default(true),
+		field.Enum("last_status").
+			Values("up", "down").
+			Optional().
+			Nillable(),
+		field.Time("last_checked_at").
+			Optional().
+			Nillable(),
+		field.Time("last_alert_sent_at").
+			Optional().
+			Nillable(),
 		field.Time("created_at").
 			Default(time.Now),
 	}

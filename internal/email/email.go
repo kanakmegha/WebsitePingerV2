@@ -117,6 +117,125 @@ func (s *Service) SendAlertEmail(to string, monitorName string, alertType string
 	return s.sendHTML(to, subject, bodyBytes.String())
 }
 
+// SendIncidentAlertEmail sends a detailed HTML incident notification email when a monitor fails.
+func (s *Service) SendIncidentAlertEmail(to string, domain string, reason string, timestamp time.Time, responseTimeMs int, tenantName string) error {
+	subject := fmt.Sprintf("🚨 [DOWN] %s is down", domain)
+
+	const tmpl = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #090d16; color: #f8fafc; padding: 24px; }
+    .card { background-color: #0f172a; border: 1px solid #7f1d1d; border-radius: 12px; padding: 24px; max-width: 600px; margin: 0 auto; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: bold; font-size: 12px; text-transform: uppercase; background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .title { font-size: 20px; font-weight: 800; margin-top: 16px; margin-bottom: 8px; color: #ffffff; }
+    .item { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
+    .item strong { color: #f1f5f9; }
+    .footer { margin-top: 24px; border-top: 1px solid #1e293b; padding-top: 16px; font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">Incident Firing</span>
+    <h1 class="title">{{.Domain}} is DOWN</h1>
+    <p class="item"><strong>Organization:</strong> {{.TenantName}}</p>
+    <p class="item"><strong>Failure Reason:</strong> {{.Reason}}</p>
+    <p class="item"><strong>Response Time:</strong> {{if gt .ResponseTimeMs 0}}{{.ResponseTimeMs}} ms{{else}}N/A (Timeout or Error){{end}}</p>
+    <p class="item"><strong>Detected At:</strong> {{.Timestamp.Format "2006-01-02 15:04:05 MST"}}</p>
+    <div class="footer">
+      Pinger Incident Alerting System • Multi-Tenant Monitor
+    </div>
+  </div>
+</body>
+</html>
+`
+
+	t, err := template.New("incident_email").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse incident email template: %w", err)
+	}
+
+	var bodyBytes bytes.Buffer
+	data := struct {
+		Domain         string
+		Reason         string
+		Timestamp      time.Time
+		ResponseTimeMs int
+		TenantName     string
+	}{
+		Domain:         domain,
+		Reason:         reason,
+		Timestamp:      timestamp,
+		ResponseTimeMs: responseTimeMs,
+		TenantName:     tenantName,
+	}
+
+	if err := t.Execute(&bodyBytes, data); err != nil {
+		return fmt.Errorf("failed to execute incident email template: %w", err)
+	}
+
+	return s.sendHTML(to, subject, bodyBytes.String())
+}
+
+// SendRecoveryAlertEmail sends a recovery HTML notification email when a monitor comes back up.
+func (s *Service) SendRecoveryAlertEmail(to string, domain string, downtimeDuration string, recoveredAt time.Time, tenantName string) error {
+	subject := fmt.Sprintf("✅ [RECOVERED] %s is back up", domain)
+
+	const tmpl = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #090d16; color: #f8fafc; padding: 24px; }
+    .card { background-color: #0f172a; border: 1px solid #065f46; border-radius: 12px; padding: 24px; max-width: 600px; margin: 0 auto; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: bold; font-size: 12px; text-transform: uppercase; background-color: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .title { font-size: 20px; font-weight: 800; margin-top: 16px; margin-bottom: 8px; color: #ffffff; }
+    .item { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
+    .item strong { color: #f1f5f9; }
+    .footer { margin-top: 24px; border-top: 1px solid #1e293b; padding-top: 16px; font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">Incident Resolved</span>
+    <h1 class="title">{{.Domain}} is RECOVERED</h1>
+    <p class="item"><strong>Organization:</strong> {{.TenantName}}</p>
+    <p class="item"><strong>Downtime Duration:</strong> {{.DowntimeDuration}}</p>
+    <p class="item"><strong>Recovered At:</strong> {{.RecoveredAt.Format "2006-01-02 15:04:05 MST"}}</p>
+    <div class="footer">
+      Pinger Incident Alerting System • Multi-Tenant Monitor
+    </div>
+  </div>
+</body>
+</html>
+`
+
+	t, err := template.New("recovery_email").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse recovery email template: %w", err)
+	}
+
+	var bodyBytes bytes.Buffer
+	data := struct {
+		Domain           string
+		DowntimeDuration string
+		RecoveredAt      time.Time
+		TenantName       string
+	}{
+		Domain:           domain,
+		DowntimeDuration: downtimeDuration,
+		RecoveredAt:      recoveredAt,
+		TenantName:       tenantName,
+	}
+
+	if err := t.Execute(&bodyBytes, data); err != nil {
+		return fmt.Errorf("failed to execute recovery email template: %w", err)
+	}
+
+	return s.sendHTML(to, subject, bodyBytes.String())
+}
+
 // SendInviteEmail sends an HTML organization invitation email to the recipient with unique subject reference to prevent Gmail threading.
 func (s *Service) SendInviteEmail(to string, tenantName string, role string, inviteURL string, shortToken string) error {
 	subject := fmt.Sprintf("You're invited to join %s on Pinger (Ref: %s)", tenantName, shortToken)

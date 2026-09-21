@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
@@ -218,6 +219,17 @@ func (h *MonitorHandler) Create(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": fmt.Sprintf("failed to create check config for %s: %v", cType, err)})
 			return
 		}
+	}
+
+	// Create default Alert rules for the monitor
+	defaultAlerts := []alert.Type{alert.TypeDown, alert.TypeSslExpiring, alert.TypeDNSChanged, alert.TypeDomainExpiring}
+	for _, aType := range defaultAlerts {
+		_, _ = tx.Alert.Create().
+			SetTenantID(tenantID).
+			SetMonitorID(m.ID).
+			SetType(aType).
+			SetThreshold(1).
+			Save(ctx)
 	}
 
 	if err := tx.Commit(); err != nil {

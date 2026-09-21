@@ -125,7 +125,7 @@ func init() {
 	// monitor.DefaultIsActive holds the default value on creation for the is_active field.
 	monitor.DefaultIsActive = monitorDescIsActive.Default.(bool)
 	// monitorDescCreatedAt is the schema descriptor for created_at field.
-	monitorDescCreatedAt := monitorFields[10].Descriptor()
+	monitorDescCreatedAt := monitorFields[13].Descriptor()
 	// monitor.DefaultCreatedAt holds the default value on creation for the created_at field.
 	monitor.DefaultCreatedAt = monitorDescCreatedAt.Default.(func() time.Time)
 	// monitorDescID is the schema descriptor for id field.

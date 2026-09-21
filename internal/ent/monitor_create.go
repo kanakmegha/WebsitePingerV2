@@ -112,6 +112,48 @@ func (mc *MonitorCreate) SetNillableIsActive(b *bool) *MonitorCreate {
 	return mc
 }
 
+// SetLastStatus sets the "last_status" field.
+func (mc *MonitorCreate) SetLastStatus(ms monitor.LastStatus) *MonitorCreate {
+	mc.mutation.SetLastStatus(ms)
+	return mc
+}
+
+// SetNillableLastStatus sets the "last_status" field if the given value is not nil.
+func (mc *MonitorCreate) SetNillableLastStatus(ms *monitor.LastStatus) *MonitorCreate {
+	if ms != nil {
+		mc.SetLastStatus(*ms)
+	}
+	return mc
+}
+
+// SetLastCheckedAt sets the "last_checked_at" field.
+func (mc *MonitorCreate) SetLastCheckedAt(t time.Time) *MonitorCreate {
+	mc.mutation.SetLastCheckedAt(t)
+	return mc
+}
+
+// SetNillableLastCheckedAt sets the "last_checked_at" field if the given value is not nil.
+func (mc *MonitorCreate) SetNillableLastCheckedAt(t *time.Time) *MonitorCreate {
+	if t != nil {
+		mc.SetLastCheckedAt(*t)
+	}
+	return mc
+}
+
+// SetLastAlertSentAt sets the "last_alert_sent_at" field.
+func (mc *MonitorCreate) SetLastAlertSentAt(t time.Time) *MonitorCreate {
+	mc.mutation.SetLastAlertSentAt(t)
+	return mc
+}
+
+// SetNillableLastAlertSentAt sets the "last_alert_sent_at" field if the given value is not nil.
+func (mc *MonitorCreate) SetNillableLastAlertSentAt(t *time.Time) *MonitorCreate {
+	if t != nil {
+		mc.SetLastAlertSentAt(*t)
+	}
+	return mc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (mc *MonitorCreate) SetCreatedAt(t time.Time) *MonitorCreate {
 	mc.mutation.SetCreatedAt(t)
@@ -312,6 +354,11 @@ func (mc *MonitorCreate) check() error {
 	if _, ok := mc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Monitor.is_active"`)}
 	}
+	if v, ok := mc.mutation.LastStatus(); ok {
+		if err := monitor.LastStatusValidator(v); err != nil {
+			return &ValidationError{Name: "last_status", err: fmt.Errorf(`ent: validator failed for field "Monitor.last_status": %w`, err)}
+		}
+	}
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Monitor.created_at"`)}
 	}
@@ -384,6 +431,18 @@ func (mc *MonitorCreate) createSpec() (*Monitor, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.IsActive(); ok {
 		_spec.SetField(monitor.FieldIsActive, field.TypeBool, value)
 		_node.IsActive = value
+	}
+	if value, ok := mc.mutation.LastStatus(); ok {
+		_spec.SetField(monitor.FieldLastStatus, field.TypeEnum, value)
+		_node.LastStatus = &value
+	}
+	if value, ok := mc.mutation.LastCheckedAt(); ok {
+		_spec.SetField(monitor.FieldLastCheckedAt, field.TypeTime, value)
+		_node.LastCheckedAt = &value
+	}
+	if value, ok := mc.mutation.LastAlertSentAt(); ok {
+		_spec.SetField(monitor.FieldLastAlertSentAt, field.TypeTime, value)
+		_node.LastAlertSentAt = &value
 	}
 	if value, ok := mc.mutation.CreatedAt(); ok {
 		_spec.SetField(monitor.FieldCreatedAt, field.TypeTime, value)

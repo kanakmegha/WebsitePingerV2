@@ -38,6 +38,12 @@ type Monitor struct {
 	TimeoutSeconds int `json:"timeout_seconds,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
+	// LastStatus holds the value of the "last_status" field.
+	LastStatus *monitor.LastStatus `json:"last_status,omitempty"`
+	// LastCheckedAt holds the value of the "last_checked_at" field.
+	LastCheckedAt *time.Time `json:"last_checked_at,omitempty"`
+	// LastAlertSentAt holds the value of the "last_alert_sent_at" field.
+	LastAlertSentAt *time.Time `json:"last_alert_sent_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -121,9 +127,9 @@ func (*Monitor) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case monitor.FieldIntervalSeconds, monitor.FieldTimeoutSeconds:
 			values[i] = new(sql.NullInt64)
-		case monitor.FieldName, monitor.FieldURL, monitor.FieldDomain, monitor.FieldType:
+		case monitor.FieldName, monitor.FieldURL, monitor.FieldDomain, monitor.FieldType, monitor.FieldLastStatus:
 			values[i] = new(sql.NullString)
-		case monitor.FieldCreatedAt:
+		case monitor.FieldLastCheckedAt, monitor.FieldLastAlertSentAt, monitor.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		case monitor.FieldID, monitor.FieldTenantID:
 			values[i] = new(uuid.UUID)
@@ -203,6 +209,27 @@ func (m *Monitor) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
 			} else if value.Valid {
 				m.IsActive = value.Bool
+			}
+		case monitor.FieldLastStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_status", values[i])
+			} else if value.Valid {
+				m.LastStatus = new(monitor.LastStatus)
+				*m.LastStatus = monitor.LastStatus(value.String)
+			}
+		case monitor.FieldLastCheckedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_checked_at", values[i])
+			} else if value.Valid {
+				m.LastCheckedAt = new(time.Time)
+				*m.LastCheckedAt = value.Time
+			}
+		case monitor.FieldLastAlertSentAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_alert_sent_at", values[i])
+			} else if value.Valid {
+				m.LastAlertSentAt = new(time.Time)
+				*m.LastAlertSentAt = value.Time
 			}
 		case monitor.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -297,6 +324,21 @@ func (m *Monitor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", m.IsActive))
+	builder.WriteString(", ")
+	if v := m.LastStatus; v != nil {
+		builder.WriteString("last_status=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := m.LastCheckedAt; v != nil {
+		builder.WriteString("last_checked_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := m.LastAlertSentAt; v != nil {
+		builder.WriteString("last_alert_sent_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(m.CreatedAt.Format(time.ANSIC))

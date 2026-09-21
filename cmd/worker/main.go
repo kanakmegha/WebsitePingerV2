@@ -158,6 +158,7 @@ func processJob(ctx context.Context, client *ent.Client, limiter *ratelimit.Rate
 func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.Engine, job *queue.CheckJob, res interface{}) {
 	status := monitorcheck.StatusSuccess
 	var errMessage string
+	var responseTimeMs int
 
 	mcBuilder := client.MonitorCheck.Create().
 		SetMonitorID(job.MonitorID).
@@ -165,6 +166,7 @@ func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.E
 
 	switch v := res.(type) {
 	case *checker.HTTPResult:
+		responseTimeMs = int(v.ResponseTimeMS)
 		if !v.Success {
 			status = monitorcheck.StatusFailure
 			errMessage = v.Error
@@ -197,6 +199,10 @@ func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.E
 		}
 
 	case *checker.DomainResult:
+		if v.Error != "" {
+			status = monitorcheck.StatusFailure
+			errMessage = v.Error
+		}
 		mcStr, err := mcBuilder.SetStatus(status).SetError(v.Error).Save(ctx)
 		if err == nil {
 			client.DomainCheckResult.Create().
@@ -208,7 +214,15 @@ func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.E
 		}
 
 	case *checker.DNSResult:
-		mcStr, err := mcBuilder.SetStatus(status).SetError(v.Error).Save(ctx)
+		if v.Error != "" || !v.HasARecord {
+			status = monitorcheck.StatusFailure
+			if v.Error != "" {
+				errMessage = v.Error
+			} else {
+				errMessage = "DNS check failed: No A record found"
+			}
+		}
+		mcStr, err := mcBuilder.SetStatus(status).SetError(errMessage).Save(ctx)
 		if err == nil {
 			client.DNSCheckResult.Create().
 				SetCheckID(mcStr.ID).
@@ -224,10 +238,10 @@ func saveCheckResults(ctx context.Context, client *ent.Client, alertEng *alert.E
 		}
 	}
 
-	// Step 4: Evaluate Idempotent Alerting Rules
+	// Step 4: Evaluate State-Driven Alerting Rules
 	statusStr := "success"
 	if status == monitorcheck.StatusFailure {
 		statusStr = "failure"
 	}
-	alertEng.EvaluateCheck(ctx, job.MonitorID, job.TenantID, job.CheckType, statusStr, errMessage)
+	alertEng.EvaluateCheck(ctx, job.MonitorID, job.TenantID, job.CheckType, statusStr, errMessage, responseTimeMs)
 }

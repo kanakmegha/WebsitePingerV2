@@ -5046,6 +5046,9 @@ type MonitorMutation struct {
 	timeout_seconds      *int
 	addtimeout_seconds   *int
 	is_active            *bool
+	last_status          *monitor.LastStatus
+	last_checked_at      *time.Time
+	last_alert_sent_at   *time.Time
 	created_at           *time.Time
 	clearedFields        map[string]struct{}
 	tenant               *uuid.UUID
@@ -5548,6 +5551,153 @@ func (m *MonitorMutation) ResetIsActive() {
 	m.is_active = nil
 }
 
+// SetLastStatus sets the "last_status" field.
+func (m *MonitorMutation) SetLastStatus(ms monitor.LastStatus) {
+	m.last_status = &ms
+}
+
+// LastStatus returns the value of the "last_status" field in the mutation.
+func (m *MonitorMutation) LastStatus() (r monitor.LastStatus, exists bool) {
+	v := m.last_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastStatus returns the old "last_status" field's value of the Monitor entity.
+// If the Monitor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorMutation) OldLastStatus(ctx context.Context) (v *monitor.LastStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastStatus: %w", err)
+	}
+	return oldValue.LastStatus, nil
+}
+
+// ClearLastStatus clears the value of the "last_status" field.
+func (m *MonitorMutation) ClearLastStatus() {
+	m.last_status = nil
+	m.clearedFields[monitor.FieldLastStatus] = struct{}{}
+}
+
+// LastStatusCleared returns if the "last_status" field was cleared in this mutation.
+func (m *MonitorMutation) LastStatusCleared() bool {
+	_, ok := m.clearedFields[monitor.FieldLastStatus]
+	return ok
+}
+
+// ResetLastStatus resets all changes to the "last_status" field.
+func (m *MonitorMutation) ResetLastStatus() {
+	m.last_status = nil
+	delete(m.clearedFields, monitor.FieldLastStatus)
+}
+
+// SetLastCheckedAt sets the "last_checked_at" field.
+func (m *MonitorMutation) SetLastCheckedAt(t time.Time) {
+	m.last_checked_at = &t
+}
+
+// LastCheckedAt returns the value of the "last_checked_at" field in the mutation.
+func (m *MonitorMutation) LastCheckedAt() (r time.Time, exists bool) {
+	v := m.last_checked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastCheckedAt returns the old "last_checked_at" field's value of the Monitor entity.
+// If the Monitor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorMutation) OldLastCheckedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastCheckedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastCheckedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastCheckedAt: %w", err)
+	}
+	return oldValue.LastCheckedAt, nil
+}
+
+// ClearLastCheckedAt clears the value of the "last_checked_at" field.
+func (m *MonitorMutation) ClearLastCheckedAt() {
+	m.last_checked_at = nil
+	m.clearedFields[monitor.FieldLastCheckedAt] = struct{}{}
+}
+
+// LastCheckedAtCleared returns if the "last_checked_at" field was cleared in this mutation.
+func (m *MonitorMutation) LastCheckedAtCleared() bool {
+	_, ok := m.clearedFields[monitor.FieldLastCheckedAt]
+	return ok
+}
+
+// ResetLastCheckedAt resets all changes to the "last_checked_at" field.
+func (m *MonitorMutation) ResetLastCheckedAt() {
+	m.last_checked_at = nil
+	delete(m.clearedFields, monitor.FieldLastCheckedAt)
+}
+
+// SetLastAlertSentAt sets the "last_alert_sent_at" field.
+func (m *MonitorMutation) SetLastAlertSentAt(t time.Time) {
+	m.last_alert_sent_at = &t
+}
+
+// LastAlertSentAt returns the value of the "last_alert_sent_at" field in the mutation.
+func (m *MonitorMutation) LastAlertSentAt() (r time.Time, exists bool) {
+	v := m.last_alert_sent_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastAlertSentAt returns the old "last_alert_sent_at" field's value of the Monitor entity.
+// If the Monitor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorMutation) OldLastAlertSentAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastAlertSentAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastAlertSentAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastAlertSentAt: %w", err)
+	}
+	return oldValue.LastAlertSentAt, nil
+}
+
+// ClearLastAlertSentAt clears the value of the "last_alert_sent_at" field.
+func (m *MonitorMutation) ClearLastAlertSentAt() {
+	m.last_alert_sent_at = nil
+	m.clearedFields[monitor.FieldLastAlertSentAt] = struct{}{}
+}
+
+// LastAlertSentAtCleared returns if the "last_alert_sent_at" field was cleared in this mutation.
+func (m *MonitorMutation) LastAlertSentAtCleared() bool {
+	_, ok := m.clearedFields[monitor.FieldLastAlertSentAt]
+	return ok
+}
+
+// ResetLastAlertSentAt resets all changes to the "last_alert_sent_at" field.
+func (m *MonitorMutation) ResetLastAlertSentAt() {
+	m.last_alert_sent_at = nil
+	delete(m.clearedFields, monitor.FieldLastAlertSentAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *MonitorMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -5861,7 +6011,7 @@ func (m *MonitorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MonitorMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 13)
 	if m.tenant != nil {
 		fields = append(fields, monitor.FieldTenantID)
 	}
@@ -5888,6 +6038,15 @@ func (m *MonitorMutation) Fields() []string {
 	}
 	if m.is_active != nil {
 		fields = append(fields, monitor.FieldIsActive)
+	}
+	if m.last_status != nil {
+		fields = append(fields, monitor.FieldLastStatus)
+	}
+	if m.last_checked_at != nil {
+		fields = append(fields, monitor.FieldLastCheckedAt)
+	}
+	if m.last_alert_sent_at != nil {
+		fields = append(fields, monitor.FieldLastAlertSentAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, monitor.FieldCreatedAt)
@@ -5918,6 +6077,12 @@ func (m *MonitorMutation) Field(name string) (ent.Value, bool) {
 		return m.TimeoutSeconds()
 	case monitor.FieldIsActive:
 		return m.IsActive()
+	case monitor.FieldLastStatus:
+		return m.LastStatus()
+	case monitor.FieldLastCheckedAt:
+		return m.LastCheckedAt()
+	case monitor.FieldLastAlertSentAt:
+		return m.LastAlertSentAt()
 	case monitor.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -5947,6 +6112,12 @@ func (m *MonitorMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldTimeoutSeconds(ctx)
 	case monitor.FieldIsActive:
 		return m.OldIsActive(ctx)
+	case monitor.FieldLastStatus:
+		return m.OldLastStatus(ctx)
+	case monitor.FieldLastCheckedAt:
+		return m.OldLastCheckedAt(ctx)
+	case monitor.FieldLastAlertSentAt:
+		return m.OldLastAlertSentAt(ctx)
 	case monitor.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -6021,6 +6192,27 @@ func (m *MonitorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsActive(v)
 		return nil
+	case monitor.FieldLastStatus:
+		v, ok := value.(monitor.LastStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastStatus(v)
+		return nil
+	case monitor.FieldLastCheckedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastCheckedAt(v)
+		return nil
+	case monitor.FieldLastAlertSentAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastAlertSentAt(v)
+		return nil
 	case monitor.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -6088,6 +6280,15 @@ func (m *MonitorMutation) ClearedFields() []string {
 	if m.FieldCleared(monitor.FieldEnabledChecks) {
 		fields = append(fields, monitor.FieldEnabledChecks)
 	}
+	if m.FieldCleared(monitor.FieldLastStatus) {
+		fields = append(fields, monitor.FieldLastStatus)
+	}
+	if m.FieldCleared(monitor.FieldLastCheckedAt) {
+		fields = append(fields, monitor.FieldLastCheckedAt)
+	}
+	if m.FieldCleared(monitor.FieldLastAlertSentAt) {
+		fields = append(fields, monitor.FieldLastAlertSentAt)
+	}
 	return fields
 }
 
@@ -6104,6 +6305,15 @@ func (m *MonitorMutation) ClearField(name string) error {
 	switch name {
 	case monitor.FieldEnabledChecks:
 		m.ClearEnabledChecks()
+		return nil
+	case monitor.FieldLastStatus:
+		m.ClearLastStatus()
+		return nil
+	case monitor.FieldLastCheckedAt:
+		m.ClearLastCheckedAt()
+		return nil
+	case monitor.FieldLastAlertSentAt:
+		m.ClearLastAlertSentAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Monitor nullable field %s", name)
@@ -6139,6 +6349,15 @@ func (m *MonitorMutation) ResetField(name string) error {
 		return nil
 	case monitor.FieldIsActive:
 		m.ResetIsActive()
+		return nil
+	case monitor.FieldLastStatus:
+		m.ResetLastStatus()
+		return nil
+	case monitor.FieldLastCheckedAt:
+		m.ResetLastCheckedAt()
+		return nil
+	case monitor.FieldLastAlertSentAt:
+		m.ResetLastAlertSentAt()
 		return nil
 	case monitor.FieldCreatedAt:
 		m.ResetCreatedAt()

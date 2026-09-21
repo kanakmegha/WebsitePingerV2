@@ -34,6 +34,12 @@ const (
 	FieldTimeoutSeconds = "timeout_seconds"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
+	// FieldLastStatus holds the string denoting the last_status field in the database.
+	FieldLastStatus = "last_status"
+	// FieldLastCheckedAt holds the string denoting the last_checked_at field in the database.
+	FieldLastCheckedAt = "last_checked_at"
+	// FieldLastAlertSentAt holds the string denoting the last_alert_sent_at field in the database.
+	FieldLastAlertSentAt = "last_alert_sent_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeTenant holds the string denoting the tenant edge name in mutations.
@@ -97,6 +103,9 @@ var Columns = []string{
 	FieldIntervalSeconds,
 	FieldTimeoutSeconds,
 	FieldIsActive,
+	FieldLastStatus,
+	FieldLastCheckedAt,
+	FieldLastAlertSentAt,
 	FieldCreatedAt,
 }
 
@@ -157,6 +166,29 @@ func TypeValidator(_type Type) error {
 	}
 }
 
+// LastStatus defines the type for the "last_status" enum field.
+type LastStatus string
+
+// LastStatus values.
+const (
+	LastStatusUp   LastStatus = "up"
+	LastStatusDown LastStatus = "down"
+)
+
+func (ls LastStatus) String() string {
+	return string(ls)
+}
+
+// LastStatusValidator is a validator for the "last_status" field enum values. It is called by the builders before save.
+func LastStatusValidator(ls LastStatus) error {
+	switch ls {
+	case LastStatusUp, LastStatusDown:
+		return nil
+	default:
+		return fmt.Errorf("monitor: invalid enum value for last_status field: %q", ls)
+	}
+}
+
 // OrderOption defines the ordering options for the Monitor queries.
 type OrderOption func(*sql.Selector)
 
@@ -203,6 +235,21 @@ func ByTimeoutSeconds(opts ...sql.OrderTermOption) OrderOption {
 // ByIsActive orders the results by the is_active field.
 func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByLastStatus orders the results by the last_status field.
+func ByLastStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastStatus, opts...).ToFunc()
+}
+
+// ByLastCheckedAt orders the results by the last_checked_at field.
+func ByLastCheckedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastCheckedAt, opts...).ToFunc()
+}
+
+// ByLastAlertSentAt orders the results by the last_alert_sent_at field.
+func ByLastAlertSentAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastAlertSentAt, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

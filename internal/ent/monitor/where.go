@@ -91,6 +91,16 @@ func IsActive(v bool) predicate.Monitor {
 	return predicate.Monitor(sql.FieldEQ(FieldIsActive, v))
 }
 
+// LastCheckedAt applies equality check predicate on the "last_checked_at" field. It's identical to LastCheckedAtEQ.
+func LastCheckedAt(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldEQ(FieldLastCheckedAt, v))
+}
+
+// LastAlertSentAt applies equality check predicate on the "last_alert_sent_at" field. It's identical to LastAlertSentAtEQ.
+func LastAlertSentAt(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldEQ(FieldLastAlertSentAt, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Monitor {
 	return predicate.Monitor(sql.FieldEQ(FieldCreatedAt, v))
@@ -429,6 +439,136 @@ func IsActiveEQ(v bool) predicate.Monitor {
 // IsActiveNEQ applies the NEQ predicate on the "is_active" field.
 func IsActiveNEQ(v bool) predicate.Monitor {
 	return predicate.Monitor(sql.FieldNEQ(FieldIsActive, v))
+}
+
+// LastStatusEQ applies the EQ predicate on the "last_status" field.
+func LastStatusEQ(v LastStatus) predicate.Monitor {
+	return predicate.Monitor(sql.FieldEQ(FieldLastStatus, v))
+}
+
+// LastStatusNEQ applies the NEQ predicate on the "last_status" field.
+func LastStatusNEQ(v LastStatus) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNEQ(FieldLastStatus, v))
+}
+
+// LastStatusIn applies the In predicate on the "last_status" field.
+func LastStatusIn(vs ...LastStatus) predicate.Monitor {
+	return predicate.Monitor(sql.FieldIn(FieldLastStatus, vs...))
+}
+
+// LastStatusNotIn applies the NotIn predicate on the "last_status" field.
+func LastStatusNotIn(vs ...LastStatus) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotIn(FieldLastStatus, vs...))
+}
+
+// LastStatusIsNil applies the IsNil predicate on the "last_status" field.
+func LastStatusIsNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldIsNull(FieldLastStatus))
+}
+
+// LastStatusNotNil applies the NotNil predicate on the "last_status" field.
+func LastStatusNotNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotNull(FieldLastStatus))
+}
+
+// LastCheckedAtEQ applies the EQ predicate on the "last_checked_at" field.
+func LastCheckedAtEQ(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldEQ(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtNEQ applies the NEQ predicate on the "last_checked_at" field.
+func LastCheckedAtNEQ(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNEQ(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtIn applies the In predicate on the "last_checked_at" field.
+func LastCheckedAtIn(vs ...time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldIn(FieldLastCheckedAt, vs...))
+}
+
+// LastCheckedAtNotIn applies the NotIn predicate on the "last_checked_at" field.
+func LastCheckedAtNotIn(vs ...time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotIn(FieldLastCheckedAt, vs...))
+}
+
+// LastCheckedAtGT applies the GT predicate on the "last_checked_at" field.
+func LastCheckedAtGT(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldGT(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtGTE applies the GTE predicate on the "last_checked_at" field.
+func LastCheckedAtGTE(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldGTE(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtLT applies the LT predicate on the "last_checked_at" field.
+func LastCheckedAtLT(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldLT(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtLTE applies the LTE predicate on the "last_checked_at" field.
+func LastCheckedAtLTE(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldLTE(FieldLastCheckedAt, v))
+}
+
+// LastCheckedAtIsNil applies the IsNil predicate on the "last_checked_at" field.
+func LastCheckedAtIsNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldIsNull(FieldLastCheckedAt))
+}
+
+// LastCheckedAtNotNil applies the NotNil predicate on the "last_checked_at" field.
+func LastCheckedAtNotNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotNull(FieldLastCheckedAt))
+}
+
+// LastAlertSentAtEQ applies the EQ predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtEQ(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldEQ(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtNEQ applies the NEQ predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtNEQ(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNEQ(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtIn applies the In predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtIn(vs ...time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldIn(FieldLastAlertSentAt, vs...))
+}
+
+// LastAlertSentAtNotIn applies the NotIn predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtNotIn(vs ...time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotIn(FieldLastAlertSentAt, vs...))
+}
+
+// LastAlertSentAtGT applies the GT predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtGT(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldGT(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtGTE applies the GTE predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtGTE(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldGTE(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtLT applies the LT predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtLT(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldLT(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtLTE applies the LTE predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtLTE(v time.Time) predicate.Monitor {
+	return predicate.Monitor(sql.FieldLTE(FieldLastAlertSentAt, v))
+}
+
+// LastAlertSentAtIsNil applies the IsNil predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtIsNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldIsNull(FieldLastAlertSentAt))
+}
+
+// LastAlertSentAtNotNil applies the NotNil predicate on the "last_alert_sent_at" field.
+func LastAlertSentAtNotNil() predicate.Monitor {
+	return predicate.Monitor(sql.FieldNotNull(FieldLastAlertSentAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -172,6 +172,66 @@ func (mu *MonitorUpdate) SetNillableIsActive(b *bool) *MonitorUpdate {
 	return mu
 }
 
+// SetLastStatus sets the "last_status" field.
+func (mu *MonitorUpdate) SetLastStatus(ms monitor.LastStatus) *MonitorUpdate {
+	mu.mutation.SetLastStatus(ms)
+	return mu
+}
+
+// SetNillableLastStatus sets the "last_status" field if the given value is not nil.
+func (mu *MonitorUpdate) SetNillableLastStatus(ms *monitor.LastStatus) *MonitorUpdate {
+	if ms != nil {
+		mu.SetLastStatus(*ms)
+	}
+	return mu
+}
+
+// ClearLastStatus clears the value of the "last_status" field.
+func (mu *MonitorUpdate) ClearLastStatus() *MonitorUpdate {
+	mu.mutation.ClearLastStatus()
+	return mu
+}
+
+// SetLastCheckedAt sets the "last_checked_at" field.
+func (mu *MonitorUpdate) SetLastCheckedAt(t time.Time) *MonitorUpdate {
+	mu.mutation.SetLastCheckedAt(t)
+	return mu
+}
+
+// SetNillableLastCheckedAt sets the "last_checked_at" field if the given value is not nil.
+func (mu *MonitorUpdate) SetNillableLastCheckedAt(t *time.Time) *MonitorUpdate {
+	if t != nil {
+		mu.SetLastCheckedAt(*t)
+	}
+	return mu
+}
+
+// ClearLastCheckedAt clears the value of the "last_checked_at" field.
+func (mu *MonitorUpdate) ClearLastCheckedAt() *MonitorUpdate {
+	mu.mutation.ClearLastCheckedAt()
+	return mu
+}
+
+// SetLastAlertSentAt sets the "last_alert_sent_at" field.
+func (mu *MonitorUpdate) SetLastAlertSentAt(t time.Time) *MonitorUpdate {
+	mu.mutation.SetLastAlertSentAt(t)
+	return mu
+}
+
+// SetNillableLastAlertSentAt sets the "last_alert_sent_at" field if the given value is not nil.
+func (mu *MonitorUpdate) SetNillableLastAlertSentAt(t *time.Time) *MonitorUpdate {
+	if t != nil {
+		mu.SetLastAlertSentAt(*t)
+	}
+	return mu
+}
+
+// ClearLastAlertSentAt clears the value of the "last_alert_sent_at" field.
+func (mu *MonitorUpdate) ClearLastAlertSentAt() *MonitorUpdate {
+	mu.mutation.ClearLastAlertSentAt()
+	return mu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (mu *MonitorUpdate) SetCreatedAt(t time.Time) *MonitorUpdate {
 	mu.mutation.SetCreatedAt(t)
@@ -395,6 +455,11 @@ func (mu *MonitorUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Monitor.type": %w`, err)}
 		}
 	}
+	if v, ok := mu.mutation.LastStatus(); ok {
+		if err := monitor.LastStatusValidator(v); err != nil {
+			return &ValidationError{Name: "last_status", err: fmt.Errorf(`ent: validator failed for field "Monitor.last_status": %w`, err)}
+		}
+	}
 	if mu.mutation.TenantCleared() && len(mu.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Monitor.tenant"`)
 	}
@@ -445,6 +510,24 @@ func (mu *MonitorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.IsActive(); ok {
 		_spec.SetField(monitor.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := mu.mutation.LastStatus(); ok {
+		_spec.SetField(monitor.FieldLastStatus, field.TypeEnum, value)
+	}
+	if mu.mutation.LastStatusCleared() {
+		_spec.ClearField(monitor.FieldLastStatus, field.TypeEnum)
+	}
+	if value, ok := mu.mutation.LastCheckedAt(); ok {
+		_spec.SetField(monitor.FieldLastCheckedAt, field.TypeTime, value)
+	}
+	if mu.mutation.LastCheckedAtCleared() {
+		_spec.ClearField(monitor.FieldLastCheckedAt, field.TypeTime)
+	}
+	if value, ok := mu.mutation.LastAlertSentAt(); ok {
+		_spec.SetField(monitor.FieldLastAlertSentAt, field.TypeTime, value)
+	}
+	if mu.mutation.LastAlertSentAtCleared() {
+		_spec.ClearField(monitor.FieldLastAlertSentAt, field.TypeTime)
 	}
 	if value, ok := mu.mutation.CreatedAt(); ok {
 		_spec.SetField(monitor.FieldCreatedAt, field.TypeTime, value)
@@ -816,6 +899,66 @@ func (muo *MonitorUpdateOne) SetNillableIsActive(b *bool) *MonitorUpdateOne {
 	return muo
 }
 
+// SetLastStatus sets the "last_status" field.
+func (muo *MonitorUpdateOne) SetLastStatus(ms monitor.LastStatus) *MonitorUpdateOne {
+	muo.mutation.SetLastStatus(ms)
+	return muo
+}
+
+// SetNillableLastStatus sets the "last_status" field if the given value is not nil.
+func (muo *MonitorUpdateOne) SetNillableLastStatus(ms *monitor.LastStatus) *MonitorUpdateOne {
+	if ms != nil {
+		muo.SetLastStatus(*ms)
+	}
+	return muo
+}
+
+// ClearLastStatus clears the value of the "last_status" field.
+func (muo *MonitorUpdateOne) ClearLastStatus() *MonitorUpdateOne {
+	muo.mutation.ClearLastStatus()
+	return muo
+}
+
+// SetLastCheckedAt sets the "last_checked_at" field.
+func (muo *MonitorUpdateOne) SetLastCheckedAt(t time.Time) *MonitorUpdateOne {
+	muo.mutation.SetLastCheckedAt(t)
+	return muo
+}
+
+// SetNillableLastCheckedAt sets the "last_checked_at" field if the given value is not nil.
+func (muo *MonitorUpdateOne) SetNillableLastCheckedAt(t *time.Time) *MonitorUpdateOne {
+	if t != nil {
+		muo.SetLastCheckedAt(*t)
+	}
+	return muo
+}
+
+// ClearLastCheckedAt clears the value of the "last_checked_at" field.
+func (muo *MonitorUpdateOne) ClearLastCheckedAt() *MonitorUpdateOne {
+	muo.mutation.ClearLastCheckedAt()
+	return muo
+}
+
+// SetLastAlertSentAt sets the "last_alert_sent_at" field.
+func (muo *MonitorUpdateOne) SetLastAlertSentAt(t time.Time) *MonitorUpdateOne {
+	muo.mutation.SetLastAlertSentAt(t)
+	return muo
+}
+
+// SetNillableLastAlertSentAt sets the "last_alert_sent_at" field if the given value is not nil.
+func (muo *MonitorUpdateOne) SetNillableLastAlertSentAt(t *time.Time) *MonitorUpdateOne {
+	if t != nil {
+		muo.SetLastAlertSentAt(*t)
+	}
+	return muo
+}
+
+// ClearLastAlertSentAt clears the value of the "last_alert_sent_at" field.
+func (muo *MonitorUpdateOne) ClearLastAlertSentAt() *MonitorUpdateOne {
+	muo.mutation.ClearLastAlertSentAt()
+	return muo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (muo *MonitorUpdateOne) SetCreatedAt(t time.Time) *MonitorUpdateOne {
 	muo.mutation.SetCreatedAt(t)
@@ -1052,6 +1195,11 @@ func (muo *MonitorUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Monitor.type": %w`, err)}
 		}
 	}
+	if v, ok := muo.mutation.LastStatus(); ok {
+		if err := monitor.LastStatusValidator(v); err != nil {
+			return &ValidationError{Name: "last_status", err: fmt.Errorf(`ent: validator failed for field "Monitor.last_status": %w`, err)}
+		}
+	}
 	if muo.mutation.TenantCleared() && len(muo.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Monitor.tenant"`)
 	}
@@ -1119,6 +1267,24 @@ func (muo *MonitorUpdateOne) sqlSave(ctx context.Context) (_node *Monitor, err e
 	}
 	if value, ok := muo.mutation.IsActive(); ok {
 		_spec.SetField(monitor.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := muo.mutation.LastStatus(); ok {
+		_spec.SetField(monitor.FieldLastStatus, field.TypeEnum, value)
+	}
+	if muo.mutation.LastStatusCleared() {
+		_spec.ClearField(monitor.FieldLastStatus, field.TypeEnum)
+	}
+	if value, ok := muo.mutation.LastCheckedAt(); ok {
+		_spec.SetField(monitor.FieldLastCheckedAt, field.TypeTime, value)
+	}
+	if muo.mutation.LastCheckedAtCleared() {
+		_spec.ClearField(monitor.FieldLastCheckedAt, field.TypeTime)
+	}
+	if value, ok := muo.mutation.LastAlertSentAt(); ok {
+		_spec.SetField(monitor.FieldLastAlertSentAt, field.TypeTime, value)
+	}
+	if muo.mutation.LastAlertSentAtCleared() {
+		_spec.ClearField(monitor.FieldLastAlertSentAt, field.TypeTime)
 	}
 	if value, ok := muo.mutation.CreatedAt(); ok {
 		_spec.SetField(monitor.FieldCreatedAt, field.TypeTime, value)

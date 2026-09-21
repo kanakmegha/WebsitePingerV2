@@ -221,6 +221,9 @@ var (
 		{Name: "interval_seconds", Type: field.TypeInt, Default: 60},
 		{Name: "timeout_seconds", Type: field.TypeInt, Default: 10},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "last_status", Type: field.TypeEnum, Nullable: true, Enums: []string{"up", "down"}},
+		{Name: "last_checked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_alert_sent_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "tenant_id", Type: field.TypeUUID},
 	}
@@ -232,7 +235,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "monitors_tenants_monitors",
-				Columns:    []*schema.Column{MonitorsColumns[10]},
+				Columns:    []*schema.Column{MonitorsColumns[13]},
 				RefColumns: []*schema.Column{TenantsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -246,7 +249,7 @@ var (
 			{
 				Name:    "monitor_tenant_id_is_active",
 				Unique:  false,
-				Columns: []*schema.Column{MonitorsColumns[10], MonitorsColumns[8]},
+				Columns: []*schema.Column{MonitorsColumns[13], MonitorsColumns[8]},
 			},
 		},
 	}
