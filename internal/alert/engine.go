@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
-	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
@@ -82,7 +81,9 @@ func (e *Engine) EvaluateCheck(ctx context.Context, monitorID uuid.UUID, tenantI
 				SetLastCheckedAt(now).
 				SetLastAlertSentAt(now).
 				Exec(ctx)
-			e.recordAlertEvent(ctx, m, alertevent.StatusTriggered, fmt.Sprintf("Initial check failed: %s", errStr))
+			
+			msg := fmt.Sprintf("%s is down", m.Domain)
+			e.recordAlertEvent(ctx, m, alertevent.TypeIncident, msg)
 			go e.dispatchIncidentEmail(context.Background(), tenantID, tenantName, m.Domain, errStr, now, responseTimeMs)
 		} else {
 			log.Printf("[SKIP] No state change for %s", m.Domain)
@@ -100,11 +101,12 @@ func (e *Engine) EvaluateCheck(ctx context.Context, monitorID uuid.UUID, tenantI
 			SetLastAlertSentAt(now).
 			Exec(ctx)
 
-		e.recordAlertEvent(ctx, m, alertevent.StatusTriggered, fmt.Sprintf("Incident detected: %s", errStr))
+		msg := fmt.Sprintf("%s is down", m.Domain)
+		e.recordAlertEvent(ctx, m, alertevent.TypeIncident, msg)
 		go e.dispatchIncidentEmail(context.Background(), tenantID, tenantName, m.Domain, errStr, now, responseTimeMs)
 
 	} else if prevStatusStr == "down" && currentIsDown {
-		// CASE 3: DOWN -> DOWN (Ongoing Incident - Suppress duplicate email)
+		// CASE 3: DOWN -> DOWN (Ongoing Incident - Suppress duplicate email & alert)
 		log.Printf("[SKIP] No state change for %s", m.Domain)
 		e.client.Monitor.UpdateOneID(m.ID).
 			SetLastCheckedAt(now).
@@ -124,7 +126,8 @@ func (e *Engine) EvaluateCheck(ctx context.Context, monitorID uuid.UUID, tenantI
 			SetLastCheckedAt(now).
 			Exec(ctx)
 
-		e.recordAlertEvent(ctx, m, alertevent.StatusResolved, fmt.Sprintf("Incident resolved for %s", m.Domain))
+		msg := fmt.Sprintf("%s is back up", m.Domain)
+		e.recordAlertEvent(ctx, m, alertevent.TypeRecovery, msg)
 		go e.dispatchRecoveryEmail(context.Background(), tenantID, tenantName, m.Domain, downtimeDuration, now)
 	} else {
 		// UP -> UP: Normal operating state
@@ -192,17 +195,20 @@ func (e *Engine) getTenantRecipientEmails(ctx context.Context, tenantID uuid.UUI
 	return recipients
 }
 
-func (e *Engine) recordAlertEvent(ctx context.Context, m *ent.Monitor, status alertevent.Status, message string) {
-	alerts, _ := e.client.Alert.Query().
-		Where(alert.MonitorID(m.ID)).
-		All(ctx)
+func (e *Engine) recordAlertEvent(ctx context.Context, m *ent.Monitor, alertType alertevent.Type, message string) {
+	evt, err := e.client.AlertEvent.Create().
+		SetTenantID(m.TenantID).
+		SetMonitorID(m.ID).
+		SetType(alertType).
+		SetMessage(message).
+		SetStatus(alertevent.StatusUnread).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
 
-	for _, a := range alerts {
-		_, _ = e.client.AlertEvent.Create().
-			SetAlertID(a.ID).
-			SetMonitorID(m.ID).
-			SetStatus(status).
-			SetMessage(message).
-			Save(ctx)
+	if err != nil {
+		log.Printf("[ALERT CREATION ERROR] Failed to record alert event for tenant=%s monitor=%s: %v", m.TenantID, m.ID, err)
+		return
 	}
+
+	log.Printf("[ALERT CREATED] id=%s tenant=%s monitor=%s type=%s message=%s", evt.ID, m.TenantID, m.ID, alertType, message)
 }

@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { themeStore } from '$lib/stores/theme';
-	import { alertStore } from '$lib/stores/alerts';
+	import { alertStore, unreadCount } from '$lib/stores/alerts';
 	import { authStore, isAuthenticated } from '$lib/stores/auth';
 	import { tenantStore } from '$lib/stores/tenant';
 	import { toastStore } from '$lib/stores/toast';
@@ -24,7 +24,7 @@
 	} from '@lucide/svelte';
 
 	let isMobileMenuOpen = $state(false);
-	let activeAlertCount = $derived($alertStore.filter((a) => a.status === 'triggered').length);
+	let activeAlertCount = $derived($unreadCount);
 
 	// Close drawer on route navigation
 	$effect(() => {

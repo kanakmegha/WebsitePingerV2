@@ -13,6 +13,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 )
 
 // AlertEvent is the model entity for the AlertEvent schema.
@@ -20,14 +21,18 @@ type AlertEvent struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// AlertID holds the value of the "alert_id" field.
-	AlertID uuid.UUID `json:"alert_id,omitempty"`
+	// TenantID holds the value of the "tenant_id" field.
+	TenantID uuid.UUID `json:"tenant_id,omitempty"`
 	// MonitorID holds the value of the "monitor_id" field.
-	MonitorID uuid.UUID `json:"monitor_id,omitempty"`
-	// Status holds the value of the "status" field.
-	Status alertevent.Status `json:"status,omitempty"`
+	MonitorID *uuid.UUID `json:"monitor_id,omitempty"`
+	// AlertID holds the value of the "alert_id" field.
+	AlertID *uuid.UUID `json:"alert_id,omitempty"`
+	// Type holds the value of the "type" field.
+	Type alertevent.Type `json:"type,omitempty"`
 	// Message holds the value of the "message" field.
 	Message string `json:"message,omitempty"`
+	// Status holds the value of the "status" field.
+	Status alertevent.Status `json:"status,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -38,24 +43,26 @@ type AlertEvent struct {
 
 // AlertEventEdges holds the relations/edges for other nodes in the graph.
 type AlertEventEdges struct {
-	// Alert holds the value of the alert edge.
-	Alert *Alert `json:"alert,omitempty"`
+	// Tenant holds the value of the tenant edge.
+	Tenant *Tenant `json:"tenant,omitempty"`
 	// Monitor holds the value of the monitor edge.
 	Monitor *Monitor `json:"monitor,omitempty"`
+	// Alert holds the value of the alert edge.
+	Alert *Alert `json:"alert,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
-// AlertOrErr returns the Alert value or an error if the edge
+// TenantOrErr returns the Tenant value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AlertEventEdges) AlertOrErr() (*Alert, error) {
-	if e.Alert != nil {
-		return e.Alert, nil
+func (e AlertEventEdges) TenantOrErr() (*Tenant, error) {
+	if e.Tenant != nil {
+		return e.Tenant, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: alert.Label}
+		return nil, &NotFoundError{label: tenant.Label}
 	}
-	return nil, &NotLoadedError{edge: "alert"}
+	return nil, &NotLoadedError{edge: "tenant"}
 }
 
 // MonitorOrErr returns the Monitor value or an error if the edge
@@ -69,16 +76,29 @@ func (e AlertEventEdges) MonitorOrErr() (*Monitor, error) {
 	return nil, &NotLoadedError{edge: "monitor"}
 }
 
+// AlertOrErr returns the Alert value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AlertEventEdges) AlertOrErr() (*Alert, error) {
+	if e.Alert != nil {
+		return e.Alert, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: alert.Label}
+	}
+	return nil, &NotLoadedError{edge: "alert"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*AlertEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case alertevent.FieldStatus, alertevent.FieldMessage:
+		case alertevent.FieldMonitorID, alertevent.FieldAlertID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case alertevent.FieldType, alertevent.FieldMessage, alertevent.FieldStatus:
 			values[i] = new(sql.NullString)
 		case alertevent.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case alertevent.FieldID, alertevent.FieldAlertID, alertevent.FieldMonitorID:
+		case alertevent.FieldID, alertevent.FieldTenantID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -101,29 +121,43 @@ func (ae *AlertEvent) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ae.ID = *value
 			}
-		case alertevent.FieldAlertID:
+		case alertevent.FieldTenantID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field alert_id", values[i])
+				return fmt.Errorf("unexpected type %T for field tenant_id", values[i])
 			} else if value != nil {
-				ae.AlertID = *value
+				ae.TenantID = *value
 			}
 		case alertevent.FieldMonitorID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field monitor_id", values[i])
-			} else if value != nil {
-				ae.MonitorID = *value
-			}
-		case alertevent.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				ae.Status = alertevent.Status(value.String)
+				ae.MonitorID = new(uuid.UUID)
+				*ae.MonitorID = *value.S.(*uuid.UUID)
+			}
+		case alertevent.FieldAlertID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field alert_id", values[i])
+			} else if value.Valid {
+				ae.AlertID = new(uuid.UUID)
+				*ae.AlertID = *value.S.(*uuid.UUID)
+			}
+		case alertevent.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				ae.Type = alertevent.Type(value.String)
 			}
 		case alertevent.FieldMessage:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field message", values[i])
 			} else if value.Valid {
 				ae.Message = value.String
+			}
+		case alertevent.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				ae.Status = alertevent.Status(value.String)
 			}
 		case alertevent.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -144,14 +178,19 @@ func (ae *AlertEvent) Value(name string) (ent.Value, error) {
 	return ae.selectValues.Get(name)
 }
 
-// QueryAlert queries the "alert" edge of the AlertEvent entity.
-func (ae *AlertEvent) QueryAlert() *AlertQuery {
-	return NewAlertEventClient(ae.config).QueryAlert(ae)
+// QueryTenant queries the "tenant" edge of the AlertEvent entity.
+func (ae *AlertEvent) QueryTenant() *TenantQuery {
+	return NewAlertEventClient(ae.config).QueryTenant(ae)
 }
 
 // QueryMonitor queries the "monitor" edge of the AlertEvent entity.
 func (ae *AlertEvent) QueryMonitor() *MonitorQuery {
 	return NewAlertEventClient(ae.config).QueryMonitor(ae)
+}
+
+// QueryAlert queries the "alert" edge of the AlertEvent entity.
+func (ae *AlertEvent) QueryAlert() *AlertQuery {
+	return NewAlertEventClient(ae.config).QueryAlert(ae)
 }
 
 // Update returns a builder for updating this AlertEvent.
@@ -177,17 +216,27 @@ func (ae *AlertEvent) String() string {
 	var builder strings.Builder
 	builder.WriteString("AlertEvent(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ae.ID))
-	builder.WriteString("alert_id=")
-	builder.WriteString(fmt.Sprintf("%v", ae.AlertID))
+	builder.WriteString("tenant_id=")
+	builder.WriteString(fmt.Sprintf("%v", ae.TenantID))
 	builder.WriteString(", ")
-	builder.WriteString("monitor_id=")
-	builder.WriteString(fmt.Sprintf("%v", ae.MonitorID))
+	if v := ae.MonitorID; v != nil {
+		builder.WriteString("monitor_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", ae.Status))
+	if v := ae.AlertID; v != nil {
+		builder.WriteString("alert_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", ae.Type))
 	builder.WriteString(", ")
 	builder.WriteString("message=")
 	builder.WriteString(ae.Message)
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", ae.Status))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ae.CreatedAt.Format(time.ANSIC))

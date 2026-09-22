@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
@@ -171,6 +172,21 @@ func (tu *TenantUpdate) AddInvites(i ...*Invite) *TenantUpdate {
 	return tu.AddInviteIDs(ids...)
 }
 
+// AddAlertEventIDs adds the "alert_events" edge to the AlertEvent entity by IDs.
+func (tu *TenantUpdate) AddAlertEventIDs(ids ...uuid.UUID) *TenantUpdate {
+	tu.mutation.AddAlertEventIDs(ids...)
+	return tu
+}
+
+// AddAlertEvents adds the "alert_events" edges to the AlertEvent entity.
+func (tu *TenantUpdate) AddAlertEvents(a ...*AlertEvent) *TenantUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return tu.AddAlertEventIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (tu *TenantUpdate) Mutation() *TenantMutation {
 	return tu.mutation
@@ -285,6 +301,27 @@ func (tu *TenantUpdate) RemoveInvites(i ...*Invite) *TenantUpdate {
 		ids[j] = i[j].ID
 	}
 	return tu.RemoveInviteIDs(ids...)
+}
+
+// ClearAlertEvents clears all "alert_events" edges to the AlertEvent entity.
+func (tu *TenantUpdate) ClearAlertEvents() *TenantUpdate {
+	tu.mutation.ClearAlertEvents()
+	return tu
+}
+
+// RemoveAlertEventIDs removes the "alert_events" edge to AlertEvent entities by IDs.
+func (tu *TenantUpdate) RemoveAlertEventIDs(ids ...uuid.UUID) *TenantUpdate {
+	tu.mutation.RemoveAlertEventIDs(ids...)
+	return tu
+}
+
+// RemoveAlertEvents removes "alert_events" edges to AlertEvent entities.
+func (tu *TenantUpdate) RemoveAlertEvents(a ...*AlertEvent) *TenantUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return tu.RemoveAlertEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -599,6 +636,51 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.AlertEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedAlertEventsIDs(); len(nodes) > 0 && !tu.mutation.AlertEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.AlertEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{tenant.Label}
@@ -755,6 +837,21 @@ func (tuo *TenantUpdateOne) AddInvites(i ...*Invite) *TenantUpdateOne {
 	return tuo.AddInviteIDs(ids...)
 }
 
+// AddAlertEventIDs adds the "alert_events" edge to the AlertEvent entity by IDs.
+func (tuo *TenantUpdateOne) AddAlertEventIDs(ids ...uuid.UUID) *TenantUpdateOne {
+	tuo.mutation.AddAlertEventIDs(ids...)
+	return tuo
+}
+
+// AddAlertEvents adds the "alert_events" edges to the AlertEvent entity.
+func (tuo *TenantUpdateOne) AddAlertEvents(a ...*AlertEvent) *TenantUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return tuo.AddAlertEventIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (tuo *TenantUpdateOne) Mutation() *TenantMutation {
 	return tuo.mutation
@@ -869,6 +966,27 @@ func (tuo *TenantUpdateOne) RemoveInvites(i ...*Invite) *TenantUpdateOne {
 		ids[j] = i[j].ID
 	}
 	return tuo.RemoveInviteIDs(ids...)
+}
+
+// ClearAlertEvents clears all "alert_events" edges to the AlertEvent entity.
+func (tuo *TenantUpdateOne) ClearAlertEvents() *TenantUpdateOne {
+	tuo.mutation.ClearAlertEvents()
+	return tuo
+}
+
+// RemoveAlertEventIDs removes the "alert_events" edge to AlertEvent entities by IDs.
+func (tuo *TenantUpdateOne) RemoveAlertEventIDs(ids ...uuid.UUID) *TenantUpdateOne {
+	tuo.mutation.RemoveAlertEventIDs(ids...)
+	return tuo
+}
+
+// RemoveAlertEvents removes "alert_events" edges to AlertEvent entities.
+func (tuo *TenantUpdateOne) RemoveAlertEvents(a ...*AlertEvent) *TenantUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return tuo.RemoveAlertEventIDs(ids...)
 }
 
 // Where appends a list predicates to the TenantUpdate builder.
@@ -1206,6 +1324,51 @@ func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (_node *Tenant, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(invite.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.AlertEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedAlertEventsIDs(); len(nodes) > 0 && !tuo.mutation.AlertEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.AlertEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

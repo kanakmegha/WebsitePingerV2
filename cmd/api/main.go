@@ -153,6 +153,7 @@ func main() {
 	monitorH := handler.NewMonitorHandler(client)
 	settingsH := handler.NewSettingsHandler(client)
 	orgH := handler.NewOrgHandler(client, emailSvc)
+	alertH := handler.NewAlertHandler(client)
 
 	// Public Auth & Invite Routes
 	r.Post("/api/auth/register", authH.Register)
@@ -181,6 +182,10 @@ func main() {
 
 		r.Get("/api/settings", settingsH.GetSettings)
 		r.Put("/api/settings", settingsH.UpdateSettings)
+
+		r.Get("/api/alerts", alertH.ListAlerts)
+		r.Put("/api/alerts/{id}/read", alertH.MarkAsRead)
+		r.Put("/api/alerts/read-all", alertH.MarkAllAsRead)
 	})
 
 	srv := &http.Server{

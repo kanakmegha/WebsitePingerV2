@@ -16,6 +16,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/predicate"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 )
 
 // AlertEventQuery is the builder for querying AlertEvent entities.
@@ -25,8 +26,9 @@ type AlertEventQuery struct {
 	order       []alertevent.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.AlertEvent
-	withAlert   *AlertQuery
+	withTenant  *TenantQuery
 	withMonitor *MonitorQuery
+	withAlert   *AlertQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,9 +65,9 @@ func (aeq *AlertEventQuery) Order(o ...alertevent.OrderOption) *AlertEventQuery 
 	return aeq
 }
 
-// QueryAlert chains the current query on the "alert" edge.
-func (aeq *AlertEventQuery) QueryAlert() *AlertQuery {
-	query := (&AlertClient{config: aeq.config}).Query()
+// QueryTenant chains the current query on the "tenant" edge.
+func (aeq *AlertEventQuery) QueryTenant() *TenantQuery {
+	query := (&TenantClient{config: aeq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aeq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,8 +78,8 @@ func (aeq *AlertEventQuery) QueryAlert() *AlertQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(alertevent.Table, alertevent.FieldID, selector),
-			sqlgraph.To(alert.Table, alert.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.AlertTable, alertevent.AlertColumn),
+			sqlgraph.To(tenant.Table, tenant.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.TenantTable, alertevent.TenantColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aeq.driver.Dialect(), step)
 		return fromU, nil
@@ -100,6 +102,28 @@ func (aeq *AlertEventQuery) QueryMonitor() *MonitorQuery {
 			sqlgraph.From(alertevent.Table, alertevent.FieldID, selector),
 			sqlgraph.To(monitor.Table, monitor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.MonitorTable, alertevent.MonitorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAlert chains the current query on the "alert" edge.
+func (aeq *AlertEventQuery) QueryAlert() *AlertQuery {
+	query := (&AlertClient{config: aeq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(alertevent.Table, alertevent.FieldID, selector),
+			sqlgraph.To(alert.Table, alert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.AlertTable, alertevent.AlertColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aeq.driver.Dialect(), step)
 		return fromU, nil
@@ -299,22 +323,23 @@ func (aeq *AlertEventQuery) Clone() *AlertEventQuery {
 		order:       append([]alertevent.OrderOption{}, aeq.order...),
 		inters:      append([]Interceptor{}, aeq.inters...),
 		predicates:  append([]predicate.AlertEvent{}, aeq.predicates...),
-		withAlert:   aeq.withAlert.Clone(),
+		withTenant:  aeq.withTenant.Clone(),
 		withMonitor: aeq.withMonitor.Clone(),
+		withAlert:   aeq.withAlert.Clone(),
 		// clone intermediate query.
 		sql:  aeq.sql.Clone(),
 		path: aeq.path,
 	}
 }
 
-// WithAlert tells the query-builder to eager-load the nodes that are connected to
-// the "alert" edge. The optional arguments are used to configure the query builder of the edge.
-func (aeq *AlertEventQuery) WithAlert(opts ...func(*AlertQuery)) *AlertEventQuery {
-	query := (&AlertClient{config: aeq.config}).Query()
+// WithTenant tells the query-builder to eager-load the nodes that are connected to
+// the "tenant" edge. The optional arguments are used to configure the query builder of the edge.
+func (aeq *AlertEventQuery) WithTenant(opts ...func(*TenantQuery)) *AlertEventQuery {
+	query := (&TenantClient{config: aeq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	aeq.withAlert = query
+	aeq.withTenant = query
 	return aeq
 }
 
@@ -329,18 +354,29 @@ func (aeq *AlertEventQuery) WithMonitor(opts ...func(*MonitorQuery)) *AlertEvent
 	return aeq
 }
 
+// WithAlert tells the query-builder to eager-load the nodes that are connected to
+// the "alert" edge. The optional arguments are used to configure the query builder of the edge.
+func (aeq *AlertEventQuery) WithAlert(opts ...func(*AlertQuery)) *AlertEventQuery {
+	query := (&AlertClient{config: aeq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aeq.withAlert = query
+	return aeq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		AlertID uuid.UUID `json:"alert_id,omitempty"`
+//		TenantID uuid.UUID `json:"tenant_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.AlertEvent.Query().
-//		GroupBy(alertevent.FieldAlertID).
+//		GroupBy(alertevent.FieldTenantID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aeq *AlertEventQuery) GroupBy(field string, fields ...string) *AlertEventGroupBy {
@@ -358,11 +394,11 @@ func (aeq *AlertEventQuery) GroupBy(field string, fields ...string) *AlertEventG
 // Example:
 //
 //	var v []struct {
-//		AlertID uuid.UUID `json:"alert_id,omitempty"`
+//		TenantID uuid.UUID `json:"tenant_id,omitempty"`
 //	}
 //
 //	client.AlertEvent.Query().
-//		Select(alertevent.FieldAlertID).
+//		Select(alertevent.FieldTenantID).
 //		Scan(ctx, &v)
 func (aeq *AlertEventQuery) Select(fields ...string) *AlertEventSelect {
 	aeq.ctx.Fields = append(aeq.ctx.Fields, fields...)
@@ -407,9 +443,10 @@ func (aeq *AlertEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*AlertEvent{}
 		_spec       = aeq.querySpec()
-		loadedTypes = [2]bool{
-			aeq.withAlert != nil,
+		loadedTypes = [3]bool{
+			aeq.withTenant != nil,
 			aeq.withMonitor != nil,
+			aeq.withAlert != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -430,9 +467,9 @@ func (aeq *AlertEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := aeq.withAlert; query != nil {
-		if err := aeq.loadAlert(ctx, query, nodes, nil,
-			func(n *AlertEvent, e *Alert) { n.Edges.Alert = e }); err != nil {
+	if query := aeq.withTenant; query != nil {
+		if err := aeq.loadTenant(ctx, query, nodes, nil,
+			func(n *AlertEvent, e *Tenant) { n.Edges.Tenant = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -442,14 +479,20 @@ func (aeq *AlertEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := aeq.withAlert; query != nil {
+		if err := aeq.loadAlert(ctx, query, nodes, nil,
+			func(n *AlertEvent, e *Alert) { n.Edges.Alert = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (aeq *AlertEventQuery) loadAlert(ctx context.Context, query *AlertQuery, nodes []*AlertEvent, init func(*AlertEvent), assign func(*AlertEvent, *Alert)) error {
+func (aeq *AlertEventQuery) loadTenant(ctx context.Context, query *TenantQuery, nodes []*AlertEvent, init func(*AlertEvent), assign func(*AlertEvent, *Tenant)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*AlertEvent)
 	for i := range nodes {
-		fk := nodes[i].AlertID
+		fk := nodes[i].TenantID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -458,7 +501,7 @@ func (aeq *AlertEventQuery) loadAlert(ctx context.Context, query *AlertQuery, no
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(alert.IDIn(ids...))
+	query.Where(tenant.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -466,7 +509,7 @@ func (aeq *AlertEventQuery) loadAlert(ctx context.Context, query *AlertQuery, no
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "alert_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "tenant_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -478,7 +521,10 @@ func (aeq *AlertEventQuery) loadMonitor(ctx context.Context, query *MonitorQuery
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*AlertEvent)
 	for i := range nodes {
-		fk := nodes[i].MonitorID
+		if nodes[i].MonitorID == nil {
+			continue
+		}
+		fk := *nodes[i].MonitorID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -496,6 +542,38 @@ func (aeq *AlertEventQuery) loadMonitor(ctx context.Context, query *MonitorQuery
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "monitor_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aeq *AlertEventQuery) loadAlert(ctx context.Context, query *AlertQuery, nodes []*AlertEvent, init func(*AlertEvent), assign func(*AlertEvent, *Alert)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*AlertEvent)
+	for i := range nodes {
+		if nodes[i].AlertID == nil {
+			continue
+		}
+		fk := *nodes[i].AlertID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(alert.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "alert_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -529,11 +607,14 @@ func (aeq *AlertEventQuery) querySpec() *sqlgraph.QuerySpec {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if aeq.withAlert != nil {
-			_spec.Node.AddColumnOnce(alertevent.FieldAlertID)
+		if aeq.withTenant != nil {
+			_spec.Node.AddColumnOnce(alertevent.FieldTenantID)
 		}
 		if aeq.withMonitor != nil {
 			_spec.Node.AddColumnOnce(alertevent.FieldMonitorID)
+		}
+		if aeq.withAlert != nil {
+			_spec.Node.AddColumnOnce(alertevent.FieldAlertID)
 		}
 	}
 	if ps := aeq.predicates; len(ps) > 0 {

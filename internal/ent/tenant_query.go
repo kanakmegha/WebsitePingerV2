@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
@@ -36,6 +37,7 @@ type TenantQuery struct {
 	withNotificationChannels *NotificationChannelQuery
 	withSettings             *TenantSettingQuery
 	withInvites              *InviteQuery
+	withAlertEvents          *AlertEventQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -197,6 +199,28 @@ func (tq *TenantQuery) QueryInvites() *InviteQuery {
 			sqlgraph.From(tenant.Table, tenant.FieldID, selector),
 			sqlgraph.To(invite.Table, invite.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, tenant.InvitesTable, tenant.InvitesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAlertEvents chains the current query on the "alert_events" edge.
+func (tq *TenantQuery) QueryAlertEvents() *AlertEventQuery {
+	query := (&AlertEventClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenant.Table, tenant.FieldID, selector),
+			sqlgraph.To(alertevent.Table, alertevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenant.AlertEventsTable, tenant.AlertEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -402,6 +426,7 @@ func (tq *TenantQuery) Clone() *TenantQuery {
 		withNotificationChannels: tq.withNotificationChannels.Clone(),
 		withSettings:             tq.withSettings.Clone(),
 		withInvites:              tq.withInvites.Clone(),
+		withAlertEvents:          tq.withAlertEvents.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -471,6 +496,17 @@ func (tq *TenantQuery) WithInvites(opts ...func(*InviteQuery)) *TenantQuery {
 		opt(query)
 	}
 	tq.withInvites = query
+	return tq
+}
+
+// WithAlertEvents tells the query-builder to eager-load the nodes that are connected to
+// the "alert_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TenantQuery) WithAlertEvents(opts ...func(*AlertEventQuery)) *TenantQuery {
+	query := (&AlertEventClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withAlertEvents = query
 	return tq
 }
 
@@ -552,13 +588,14 @@ func (tq *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 	var (
 		nodes       = []*Tenant{}
 		_spec       = tq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			tq.withMemberships != nil,
 			tq.withMonitors != nil,
 			tq.withAlerts != nil,
 			tq.withNotificationChannels != nil,
 			tq.withSettings != nil,
 			tq.withInvites != nil,
+			tq.withAlertEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -619,6 +656,13 @@ func (tq *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 		if err := tq.loadInvites(ctx, query, nodes,
 			func(n *Tenant) { n.Edges.Invites = []*Invite{} },
 			func(n *Tenant, e *Invite) { n.Edges.Invites = append(n.Edges.Invites, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withAlertEvents; query != nil {
+		if err := tq.loadAlertEvents(ctx, query, nodes,
+			func(n *Tenant) { n.Edges.AlertEvents = []*AlertEvent{} },
+			func(n *Tenant, e *AlertEvent) { n.Edges.AlertEvents = append(n.Edges.AlertEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -787,6 +831,36 @@ func (tq *TenantQuery) loadInvites(ctx context.Context, query *InviteQuery, node
 	}
 	query.Where(predicate.Invite(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(tenant.InvitesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TenantQuery) loadAlertEvents(ctx context.Context, query *AlertEventQuery, nodes []*Tenant, init func(*Tenant), assign func(*Tenant, *AlertEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Tenant)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(alertevent.FieldTenantID)
+	}
+	query.Where(predicate.AlertEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(tenant.AlertEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

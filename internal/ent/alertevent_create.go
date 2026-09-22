@@ -14,6 +14,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 )
 
 // AlertEventCreate is the builder for creating a AlertEvent entity.
@@ -23,9 +24,9 @@ type AlertEventCreate struct {
 	hooks    []Hook
 }
 
-// SetAlertID sets the "alert_id" field.
-func (aec *AlertEventCreate) SetAlertID(u uuid.UUID) *AlertEventCreate {
-	aec.mutation.SetAlertID(u)
+// SetTenantID sets the "tenant_id" field.
+func (aec *AlertEventCreate) SetTenantID(u uuid.UUID) *AlertEventCreate {
+	aec.mutation.SetTenantID(u)
 	return aec
 }
 
@@ -35,15 +36,59 @@ func (aec *AlertEventCreate) SetMonitorID(u uuid.UUID) *AlertEventCreate {
 	return aec
 }
 
-// SetStatus sets the "status" field.
-func (aec *AlertEventCreate) SetStatus(a alertevent.Status) *AlertEventCreate {
-	aec.mutation.SetStatus(a)
+// SetNillableMonitorID sets the "monitor_id" field if the given value is not nil.
+func (aec *AlertEventCreate) SetNillableMonitorID(u *uuid.UUID) *AlertEventCreate {
+	if u != nil {
+		aec.SetMonitorID(*u)
+	}
+	return aec
+}
+
+// SetAlertID sets the "alert_id" field.
+func (aec *AlertEventCreate) SetAlertID(u uuid.UUID) *AlertEventCreate {
+	aec.mutation.SetAlertID(u)
+	return aec
+}
+
+// SetNillableAlertID sets the "alert_id" field if the given value is not nil.
+func (aec *AlertEventCreate) SetNillableAlertID(u *uuid.UUID) *AlertEventCreate {
+	if u != nil {
+		aec.SetAlertID(*u)
+	}
+	return aec
+}
+
+// SetType sets the "type" field.
+func (aec *AlertEventCreate) SetType(a alertevent.Type) *AlertEventCreate {
+	aec.mutation.SetType(a)
+	return aec
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (aec *AlertEventCreate) SetNillableType(a *alertevent.Type) *AlertEventCreate {
+	if a != nil {
+		aec.SetType(*a)
+	}
 	return aec
 }
 
 // SetMessage sets the "message" field.
 func (aec *AlertEventCreate) SetMessage(s string) *AlertEventCreate {
 	aec.mutation.SetMessage(s)
+	return aec
+}
+
+// SetStatus sets the "status" field.
+func (aec *AlertEventCreate) SetStatus(a alertevent.Status) *AlertEventCreate {
+	aec.mutation.SetStatus(a)
+	return aec
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aec *AlertEventCreate) SetNillableStatus(a *alertevent.Status) *AlertEventCreate {
+	if a != nil {
+		aec.SetStatus(*a)
+	}
 	return aec
 }
 
@@ -75,14 +120,19 @@ func (aec *AlertEventCreate) SetNillableID(u *uuid.UUID) *AlertEventCreate {
 	return aec
 }
 
-// SetAlert sets the "alert" edge to the Alert entity.
-func (aec *AlertEventCreate) SetAlert(a *Alert) *AlertEventCreate {
-	return aec.SetAlertID(a.ID)
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (aec *AlertEventCreate) SetTenant(t *Tenant) *AlertEventCreate {
+	return aec.SetTenantID(t.ID)
 }
 
 // SetMonitor sets the "monitor" edge to the Monitor entity.
 func (aec *AlertEventCreate) SetMonitor(m *Monitor) *AlertEventCreate {
 	return aec.SetMonitorID(m.ID)
+}
+
+// SetAlert sets the "alert" edge to the Alert entity.
+func (aec *AlertEventCreate) SetAlert(a *Alert) *AlertEventCreate {
+	return aec.SetAlertID(a.ID)
 }
 
 // Mutation returns the AlertEventMutation object of the builder.
@@ -120,6 +170,14 @@ func (aec *AlertEventCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (aec *AlertEventCreate) defaults() {
+	if _, ok := aec.mutation.GetType(); !ok {
+		v := alertevent.DefaultType
+		aec.mutation.SetType(v)
+	}
+	if _, ok := aec.mutation.Status(); !ok {
+		v := alertevent.DefaultStatus
+		aec.mutation.SetStatus(v)
+	}
 	if _, ok := aec.mutation.CreatedAt(); !ok {
 		v := alertevent.DefaultCreatedAt()
 		aec.mutation.SetCreatedAt(v)
@@ -132,11 +190,19 @@ func (aec *AlertEventCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (aec *AlertEventCreate) check() error {
-	if _, ok := aec.mutation.AlertID(); !ok {
-		return &ValidationError{Name: "alert_id", err: errors.New(`ent: missing required field "AlertEvent.alert_id"`)}
+	if _, ok := aec.mutation.TenantID(); !ok {
+		return &ValidationError{Name: "tenant_id", err: errors.New(`ent: missing required field "AlertEvent.tenant_id"`)}
 	}
-	if _, ok := aec.mutation.MonitorID(); !ok {
-		return &ValidationError{Name: "monitor_id", err: errors.New(`ent: missing required field "AlertEvent.monitor_id"`)}
+	if _, ok := aec.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "AlertEvent.type"`)}
+	}
+	if v, ok := aec.mutation.GetType(); ok {
+		if err := alertevent.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.type": %w`, err)}
+		}
+	}
+	if _, ok := aec.mutation.Message(); !ok {
+		return &ValidationError{Name: "message", err: errors.New(`ent: missing required field "AlertEvent.message"`)}
 	}
 	if _, ok := aec.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AlertEvent.status"`)}
@@ -146,17 +212,11 @@ func (aec *AlertEventCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.status": %w`, err)}
 		}
 	}
-	if _, ok := aec.mutation.Message(); !ok {
-		return &ValidationError{Name: "message", err: errors.New(`ent: missing required field "AlertEvent.message"`)}
-	}
 	if _, ok := aec.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AlertEvent.created_at"`)}
 	}
-	if len(aec.mutation.AlertIDs()) == 0 {
-		return &ValidationError{Name: "alert", err: errors.New(`ent: missing required edge "AlertEvent.alert"`)}
-	}
-	if len(aec.mutation.MonitorIDs()) == 0 {
-		return &ValidationError{Name: "monitor", err: errors.New(`ent: missing required edge "AlertEvent.monitor"`)}
+	if len(aec.mutation.TenantIDs()) == 0 {
+		return &ValidationError{Name: "tenant", err: errors.New(`ent: missing required edge "AlertEvent.tenant"`)}
 	}
 	return nil
 }
@@ -193,33 +253,37 @@ func (aec *AlertEventCreate) createSpec() (*AlertEvent, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := aec.mutation.Status(); ok {
-		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
-		_node.Status = value
+	if value, ok := aec.mutation.GetType(); ok {
+		_spec.SetField(alertevent.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if value, ok := aec.mutation.Message(); ok {
 		_spec.SetField(alertevent.FieldMessage, field.TypeString, value)
 		_node.Message = value
 	}
+	if value, ok := aec.mutation.Status(); ok {
+		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
 	if value, ok := aec.mutation.CreatedAt(); ok {
 		_spec.SetField(alertevent.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if nodes := aec.mutation.AlertIDs(); len(nodes) > 0 {
+	if nodes := aec.mutation.TenantIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   alertevent.AlertTable,
-			Columns: []string{alertevent.AlertColumn},
+			Table:   alertevent.TenantTable,
+			Columns: []string{alertevent.TenantColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.AlertID = nodes[0]
+		_node.TenantID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := aec.mutation.MonitorIDs(); len(nodes) > 0 {
@@ -236,7 +300,24 @@ func (aec *AlertEventCreate) createSpec() (*AlertEvent, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.MonitorID = nodes[0]
+		_node.MonitorID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := aec.mutation.AlertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   alertevent.AlertTable,
+			Columns: []string{alertevent.AlertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.AlertID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

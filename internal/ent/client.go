@@ -611,15 +611,15 @@ func (c *AlertEventClient) GetX(ctx context.Context, id uuid.UUID) *AlertEvent {
 	return obj
 }
 
-// QueryAlert queries the alert edge of a AlertEvent.
-func (c *AlertEventClient) QueryAlert(ae *AlertEvent) *AlertQuery {
-	query := (&AlertClient{config: c.config}).Query()
+// QueryTenant queries the tenant edge of a AlertEvent.
+func (c *AlertEventClient) QueryTenant(ae *AlertEvent) *TenantQuery {
+	query := (&TenantClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ae.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(alertevent.Table, alertevent.FieldID, id),
-			sqlgraph.To(alert.Table, alert.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.AlertTable, alertevent.AlertColumn),
+			sqlgraph.To(tenant.Table, tenant.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.TenantTable, alertevent.TenantColumn),
 		)
 		fromV = sqlgraph.Neighbors(ae.driver.Dialect(), step)
 		return fromV, nil
@@ -636,6 +636,22 @@ func (c *AlertEventClient) QueryMonitor(ae *AlertEvent) *MonitorQuery {
 			sqlgraph.From(alertevent.Table, alertevent.FieldID, id),
 			sqlgraph.To(monitor.Table, monitor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.MonitorTable, alertevent.MonitorColumn),
+		)
+		fromV = sqlgraph.Neighbors(ae.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAlert queries the alert edge of a AlertEvent.
+func (c *AlertEventClient) QueryAlert(ae *AlertEvent) *AlertQuery {
+	query := (&AlertClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ae.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(alertevent.Table, alertevent.FieldID, id),
+			sqlgraph.To(alert.Table, alert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, alertevent.AlertTable, alertevent.AlertColumn),
 		)
 		fromV = sqlgraph.Neighbors(ae.driver.Dialect(), step)
 		return fromV, nil
@@ -2499,6 +2515,22 @@ func (c *TenantClient) QueryInvites(t *Tenant) *InviteQuery {
 			sqlgraph.From(tenant.Table, tenant.FieldID, id),
 			sqlgraph.To(invite.Table, invite.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, tenant.InvitesTable, tenant.InvitesColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAlertEvents queries the alert_events edge of a Tenant.
+func (c *TenantClient) QueryAlertEvents(t *Tenant) *AlertEventQuery {
+	query := (&AlertEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenant.Table, tenant.FieldID, id),
+			sqlgraph.To(alertevent.Table, alertevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenant.AlertEventsTable, tenant.AlertEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

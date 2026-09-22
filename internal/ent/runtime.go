@@ -45,7 +45,7 @@ func init() {
 	alerteventFields := schema.AlertEvent{}.Fields()
 	_ = alerteventFields
 	// alerteventDescCreatedAt is the schema descriptor for created_at field.
-	alerteventDescCreatedAt := alerteventFields[5].Descriptor()
+	alerteventDescCreatedAt := alerteventFields[7].Descriptor()
 	// alertevent.DefaultCreatedAt holds the default value on creation for the created_at field.
 	alertevent.DefaultCreatedAt = alerteventDescCreatedAt.Default.(func() time.Time)
 	// alerteventDescID is the schema descriptor for id field.

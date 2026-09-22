@@ -40,11 +40,13 @@ var (
 	// AlertEventsColumns holds the columns for the "alert_events" table.
 	AlertEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"triggered", "resolved"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"incident", "recovery", "invite_sent", "invite_accepted"}, Default: "incident"},
 		{Name: "message", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"unread", "read"}, Default: "unread"},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "alert_id", Type: field.TypeUUID},
-		{Name: "monitor_id", Type: field.TypeUUID},
+		{Name: "alert_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "monitor_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
 	}
 	// AlertEventsTable holds the schema information for the "alert_events" table.
 	AlertEventsTable = &schema.Table{
@@ -54,15 +56,33 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "alert_events_alerts_events",
-				Columns:    []*schema.Column{AlertEventsColumns[4]},
+				Columns:    []*schema.Column{AlertEventsColumns[5]},
 				RefColumns: []*schema.Column{AlertsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "alert_events_monitors_alert_events",
-				Columns:    []*schema.Column{AlertEventsColumns[5]},
+				Columns:    []*schema.Column{AlertEventsColumns[6]},
 				RefColumns: []*schema.Column{MonitorsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "alert_events_tenants_alert_events",
+				Columns:    []*schema.Column{AlertEventsColumns[7]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertevent_tenant_id",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventsColumns[7]},
+			},
+			{
+				Name:    "alertevent_tenant_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventsColumns[7], AlertEventsColumns[4]},
 			},
 		},
 	}
@@ -456,6 +476,7 @@ func init() {
 	AlertsTable.ForeignKeys[1].RefTable = TenantsTable
 	AlertEventsTable.ForeignKeys[0].RefTable = AlertsTable
 	AlertEventsTable.ForeignKeys[1].RefTable = MonitorsTable
+	AlertEventsTable.ForeignKeys[2].RefTable = TenantsTable
 	DNSCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
 	DomainCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
 	HTTPCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alert"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
@@ -167,6 +168,21 @@ func (tc *TenantCreate) AddInvites(i ...*Invite) *TenantCreate {
 		ids[j] = i[j].ID
 	}
 	return tc.AddInviteIDs(ids...)
+}
+
+// AddAlertEventIDs adds the "alert_events" edge to the AlertEvent entity by IDs.
+func (tc *TenantCreate) AddAlertEventIDs(ids ...uuid.UUID) *TenantCreate {
+	tc.mutation.AddAlertEventIDs(ids...)
+	return tc
+}
+
+// AddAlertEvents adds the "alert_events" edges to the AlertEvent entity.
+func (tc *TenantCreate) AddAlertEvents(a ...*AlertEvent) *TenantCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return tc.AddAlertEventIDs(ids...)
 }
 
 // Mutation returns the TenantMutation object of the builder.
@@ -370,6 +386,22 @@ func (tc *TenantCreate) createSpec() (*Tenant, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(invite.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.AlertEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AlertEventsTable,
+			Columns: []string{tenant.AlertEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

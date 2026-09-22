@@ -45,5 +45,7 @@ func (Tenant) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("invites", Invite.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("alert_events", AlertEvent.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

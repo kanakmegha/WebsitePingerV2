@@ -16,29 +16,35 @@ const (
 	Label = "alert_event"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldAlertID holds the string denoting the alert_id field in the database.
-	FieldAlertID = "alert_id"
+	// FieldTenantID holds the string denoting the tenant_id field in the database.
+	FieldTenantID = "tenant_id"
 	// FieldMonitorID holds the string denoting the monitor_id field in the database.
 	FieldMonitorID = "monitor_id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
+	// FieldAlertID holds the string denoting the alert_id field in the database.
+	FieldAlertID = "alert_id"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldMessage holds the string denoting the message field in the database.
 	FieldMessage = "message"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
-	// EdgeAlert holds the string denoting the alert edge name in mutations.
-	EdgeAlert = "alert"
+	// EdgeTenant holds the string denoting the tenant edge name in mutations.
+	EdgeTenant = "tenant"
 	// EdgeMonitor holds the string denoting the monitor edge name in mutations.
 	EdgeMonitor = "monitor"
+	// EdgeAlert holds the string denoting the alert edge name in mutations.
+	EdgeAlert = "alert"
 	// Table holds the table name of the alertevent in the database.
 	Table = "alert_events"
-	// AlertTable is the table that holds the alert relation/edge.
-	AlertTable = "alert_events"
-	// AlertInverseTable is the table name for the Alert entity.
-	// It exists in this package in order to avoid circular dependency with the "alert" package.
-	AlertInverseTable = "alerts"
-	// AlertColumn is the table column denoting the alert relation/edge.
-	AlertColumn = "alert_id"
+	// TenantTable is the table that holds the tenant relation/edge.
+	TenantTable = "alert_events"
+	// TenantInverseTable is the table name for the Tenant entity.
+	// It exists in this package in order to avoid circular dependency with the "tenant" package.
+	TenantInverseTable = "tenants"
+	// TenantColumn is the table column denoting the tenant relation/edge.
+	TenantColumn = "tenant_id"
 	// MonitorTable is the table that holds the monitor relation/edge.
 	MonitorTable = "alert_events"
 	// MonitorInverseTable is the table name for the Monitor entity.
@@ -46,15 +52,24 @@ const (
 	MonitorInverseTable = "monitors"
 	// MonitorColumn is the table column denoting the monitor relation/edge.
 	MonitorColumn = "monitor_id"
+	// AlertTable is the table that holds the alert relation/edge.
+	AlertTable = "alert_events"
+	// AlertInverseTable is the table name for the Alert entity.
+	// It exists in this package in order to avoid circular dependency with the "alert" package.
+	AlertInverseTable = "alerts"
+	// AlertColumn is the table column denoting the alert relation/edge.
+	AlertColumn = "alert_id"
 )
 
 // Columns holds all SQL columns for alertevent fields.
 var Columns = []string{
 	FieldID,
-	FieldAlertID,
+	FieldTenantID,
 	FieldMonitorID,
-	FieldStatus,
+	FieldAlertID,
+	FieldType,
 	FieldMessage,
+	FieldStatus,
 	FieldCreatedAt,
 }
 
@@ -75,13 +90,44 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// Type defines the type for the "type" enum field.
+type Type string
+
+// TypeIncident is the default value of the Type enum.
+const DefaultType = TypeIncident
+
+// Type values.
+const (
+	TypeIncident       Type = "incident"
+	TypeRecovery       Type = "recovery"
+	TypeInviteSent     Type = "invite_sent"
+	TypeInviteAccepted Type = "invite_accepted"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeIncident, TypeRecovery, TypeInviteSent, TypeInviteAccepted:
+		return nil
+	default:
+		return fmt.Errorf("alertevent: invalid enum value for type field: %q", _type)
+	}
+}
+
 // Status defines the type for the "status" enum field.
 type Status string
 
+// StatusUnread is the default value of the Status enum.
+const DefaultStatus = StatusUnread
+
 // Status values.
 const (
-	StatusTriggered Status = "triggered"
-	StatusResolved  Status = "resolved"
+	StatusUnread Status = "unread"
+	StatusRead   Status = "read"
 )
 
 func (s Status) String() string {
@@ -91,7 +137,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusTriggered, StatusResolved:
+	case StatusUnread, StatusRead:
 		return nil
 	default:
 		return fmt.Errorf("alertevent: invalid enum value for status field: %q", s)
@@ -106,9 +152,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByAlertID orders the results by the alert_id field.
-func ByAlertID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAlertID, opts...).ToFunc()
+// ByTenantID orders the results by the tenant_id field.
+func ByTenantID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTenantID, opts...).ToFunc()
 }
 
 // ByMonitorID orders the results by the monitor_id field.
@@ -116,9 +162,14 @@ func ByMonitorID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMonitorID, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+// ByAlertID orders the results by the alert_id field.
+func ByAlertID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAlertID, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByMessage orders the results by the message field.
@@ -126,15 +177,20 @@ func ByMessage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMessage, opts...).ToFunc()
 }
 
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
-// ByAlertField orders the results by alert field.
-func ByAlertField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByTenantField orders the results by tenant field.
+func ByTenantField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAlertStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newTenantStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -144,11 +200,18 @@ func ByMonitorField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMonitorStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newAlertStep() *sqlgraph.Step {
+
+// ByAlertField orders the results by alert field.
+func ByAlertField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAlertStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AlertInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, AlertTable, AlertColumn),
+		sqlgraph.To(TenantInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn),
 	)
 }
 func newMonitorStep() *sqlgraph.Step {
@@ -156,5 +219,12 @@ func newMonitorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MonitorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, MonitorTable, MonitorColumn),
+	)
+}
+func newAlertStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AlertInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, AlertTable, AlertColumn),
 	)
 }

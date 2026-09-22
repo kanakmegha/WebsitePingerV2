@@ -16,6 +16,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/predicate"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 )
 
 // AlertEventUpdate is the builder for updating AlertEvent entities.
@@ -31,16 +32,16 @@ func (aeu *AlertEventUpdate) Where(ps ...predicate.AlertEvent) *AlertEventUpdate
 	return aeu
 }
 
-// SetAlertID sets the "alert_id" field.
-func (aeu *AlertEventUpdate) SetAlertID(u uuid.UUID) *AlertEventUpdate {
-	aeu.mutation.SetAlertID(u)
+// SetTenantID sets the "tenant_id" field.
+func (aeu *AlertEventUpdate) SetTenantID(u uuid.UUID) *AlertEventUpdate {
+	aeu.mutation.SetTenantID(u)
 	return aeu
 }
 
-// SetNillableAlertID sets the "alert_id" field if the given value is not nil.
-func (aeu *AlertEventUpdate) SetNillableAlertID(u *uuid.UUID) *AlertEventUpdate {
+// SetNillableTenantID sets the "tenant_id" field if the given value is not nil.
+func (aeu *AlertEventUpdate) SetNillableTenantID(u *uuid.UUID) *AlertEventUpdate {
 	if u != nil {
-		aeu.SetAlertID(*u)
+		aeu.SetTenantID(*u)
 	}
 	return aeu
 }
@@ -59,16 +60,42 @@ func (aeu *AlertEventUpdate) SetNillableMonitorID(u *uuid.UUID) *AlertEventUpdat
 	return aeu
 }
 
-// SetStatus sets the "status" field.
-func (aeu *AlertEventUpdate) SetStatus(a alertevent.Status) *AlertEventUpdate {
-	aeu.mutation.SetStatus(a)
+// ClearMonitorID clears the value of the "monitor_id" field.
+func (aeu *AlertEventUpdate) ClearMonitorID() *AlertEventUpdate {
+	aeu.mutation.ClearMonitorID()
 	return aeu
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (aeu *AlertEventUpdate) SetNillableStatus(a *alertevent.Status) *AlertEventUpdate {
+// SetAlertID sets the "alert_id" field.
+func (aeu *AlertEventUpdate) SetAlertID(u uuid.UUID) *AlertEventUpdate {
+	aeu.mutation.SetAlertID(u)
+	return aeu
+}
+
+// SetNillableAlertID sets the "alert_id" field if the given value is not nil.
+func (aeu *AlertEventUpdate) SetNillableAlertID(u *uuid.UUID) *AlertEventUpdate {
+	if u != nil {
+		aeu.SetAlertID(*u)
+	}
+	return aeu
+}
+
+// ClearAlertID clears the value of the "alert_id" field.
+func (aeu *AlertEventUpdate) ClearAlertID() *AlertEventUpdate {
+	aeu.mutation.ClearAlertID()
+	return aeu
+}
+
+// SetType sets the "type" field.
+func (aeu *AlertEventUpdate) SetType(a alertevent.Type) *AlertEventUpdate {
+	aeu.mutation.SetType(a)
+	return aeu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (aeu *AlertEventUpdate) SetNillableType(a *alertevent.Type) *AlertEventUpdate {
 	if a != nil {
-		aeu.SetStatus(*a)
+		aeu.SetType(*a)
 	}
 	return aeu
 }
@@ -87,6 +114,20 @@ func (aeu *AlertEventUpdate) SetNillableMessage(s *string) *AlertEventUpdate {
 	return aeu
 }
 
+// SetStatus sets the "status" field.
+func (aeu *AlertEventUpdate) SetStatus(a alertevent.Status) *AlertEventUpdate {
+	aeu.mutation.SetStatus(a)
+	return aeu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aeu *AlertEventUpdate) SetNillableStatus(a *alertevent.Status) *AlertEventUpdate {
+	if a != nil {
+		aeu.SetStatus(*a)
+	}
+	return aeu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (aeu *AlertEventUpdate) SetCreatedAt(t time.Time) *AlertEventUpdate {
 	aeu.mutation.SetCreatedAt(t)
@@ -101,9 +142,9 @@ func (aeu *AlertEventUpdate) SetNillableCreatedAt(t *time.Time) *AlertEventUpdat
 	return aeu
 }
 
-// SetAlert sets the "alert" edge to the Alert entity.
-func (aeu *AlertEventUpdate) SetAlert(a *Alert) *AlertEventUpdate {
-	return aeu.SetAlertID(a.ID)
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (aeu *AlertEventUpdate) SetTenant(t *Tenant) *AlertEventUpdate {
+	return aeu.SetTenantID(t.ID)
 }
 
 // SetMonitor sets the "monitor" edge to the Monitor entity.
@@ -111,20 +152,31 @@ func (aeu *AlertEventUpdate) SetMonitor(m *Monitor) *AlertEventUpdate {
 	return aeu.SetMonitorID(m.ID)
 }
 
+// SetAlert sets the "alert" edge to the Alert entity.
+func (aeu *AlertEventUpdate) SetAlert(a *Alert) *AlertEventUpdate {
+	return aeu.SetAlertID(a.ID)
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (aeu *AlertEventUpdate) Mutation() *AlertEventMutation {
 	return aeu.mutation
 }
 
-// ClearAlert clears the "alert" edge to the Alert entity.
-func (aeu *AlertEventUpdate) ClearAlert() *AlertEventUpdate {
-	aeu.mutation.ClearAlert()
+// ClearTenant clears the "tenant" edge to the Tenant entity.
+func (aeu *AlertEventUpdate) ClearTenant() *AlertEventUpdate {
+	aeu.mutation.ClearTenant()
 	return aeu
 }
 
 // ClearMonitor clears the "monitor" edge to the Monitor entity.
 func (aeu *AlertEventUpdate) ClearMonitor() *AlertEventUpdate {
 	aeu.mutation.ClearMonitor()
+	return aeu
+}
+
+// ClearAlert clears the "alert" edge to the Alert entity.
+func (aeu *AlertEventUpdate) ClearAlert() *AlertEventUpdate {
+	aeu.mutation.ClearAlert()
 	return aeu
 }
 
@@ -157,16 +209,18 @@ func (aeu *AlertEventUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (aeu *AlertEventUpdate) check() error {
+	if v, ok := aeu.mutation.GetType(); ok {
+		if err := alertevent.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.type": %w`, err)}
+		}
+	}
 	if v, ok := aeu.mutation.Status(); ok {
 		if err := alertevent.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.status": %w`, err)}
 		}
 	}
-	if aeu.mutation.AlertCleared() && len(aeu.mutation.AlertIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AlertEvent.alert"`)
-	}
-	if aeu.mutation.MonitorCleared() && len(aeu.mutation.MonitorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AlertEvent.monitor"`)
+	if aeu.mutation.TenantCleared() && len(aeu.mutation.TenantIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "AlertEvent.tenant"`)
 	}
 	return nil
 }
@@ -183,37 +237,40 @@ func (aeu *AlertEventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := aeu.mutation.Status(); ok {
-		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
+	if value, ok := aeu.mutation.GetType(); ok {
+		_spec.SetField(alertevent.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := aeu.mutation.Message(); ok {
 		_spec.SetField(alertevent.FieldMessage, field.TypeString, value)
 	}
+	if value, ok := aeu.mutation.Status(); ok {
+		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
+	}
 	if value, ok := aeu.mutation.CreatedAt(); ok {
 		_spec.SetField(alertevent.FieldCreatedAt, field.TypeTime, value)
 	}
-	if aeu.mutation.AlertCleared() {
+	if aeu.mutation.TenantCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   alertevent.AlertTable,
-			Columns: []string{alertevent.AlertColumn},
+			Table:   alertevent.TenantTable,
+			Columns: []string{alertevent.TenantColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := aeu.mutation.AlertIDs(); len(nodes) > 0 {
+	if nodes := aeu.mutation.TenantIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   alertevent.AlertTable,
-			Columns: []string{alertevent.AlertColumn},
+			Table:   alertevent.TenantTable,
+			Columns: []string{alertevent.TenantColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -250,6 +307,35 @@ func (aeu *AlertEventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if aeu.mutation.AlertCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   alertevent.AlertTable,
+			Columns: []string{alertevent.AlertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aeu.mutation.AlertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   alertevent.AlertTable,
+			Columns: []string{alertevent.AlertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, aeu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{alertevent.Label}
@@ -270,16 +356,16 @@ type AlertEventUpdateOne struct {
 	mutation *AlertEventMutation
 }
 
-// SetAlertID sets the "alert_id" field.
-func (aeuo *AlertEventUpdateOne) SetAlertID(u uuid.UUID) *AlertEventUpdateOne {
-	aeuo.mutation.SetAlertID(u)
+// SetTenantID sets the "tenant_id" field.
+func (aeuo *AlertEventUpdateOne) SetTenantID(u uuid.UUID) *AlertEventUpdateOne {
+	aeuo.mutation.SetTenantID(u)
 	return aeuo
 }
 
-// SetNillableAlertID sets the "alert_id" field if the given value is not nil.
-func (aeuo *AlertEventUpdateOne) SetNillableAlertID(u *uuid.UUID) *AlertEventUpdateOne {
+// SetNillableTenantID sets the "tenant_id" field if the given value is not nil.
+func (aeuo *AlertEventUpdateOne) SetNillableTenantID(u *uuid.UUID) *AlertEventUpdateOne {
 	if u != nil {
-		aeuo.SetAlertID(*u)
+		aeuo.SetTenantID(*u)
 	}
 	return aeuo
 }
@@ -298,16 +384,42 @@ func (aeuo *AlertEventUpdateOne) SetNillableMonitorID(u *uuid.UUID) *AlertEventU
 	return aeuo
 }
 
-// SetStatus sets the "status" field.
-func (aeuo *AlertEventUpdateOne) SetStatus(a alertevent.Status) *AlertEventUpdateOne {
-	aeuo.mutation.SetStatus(a)
+// ClearMonitorID clears the value of the "monitor_id" field.
+func (aeuo *AlertEventUpdateOne) ClearMonitorID() *AlertEventUpdateOne {
+	aeuo.mutation.ClearMonitorID()
 	return aeuo
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (aeuo *AlertEventUpdateOne) SetNillableStatus(a *alertevent.Status) *AlertEventUpdateOne {
+// SetAlertID sets the "alert_id" field.
+func (aeuo *AlertEventUpdateOne) SetAlertID(u uuid.UUID) *AlertEventUpdateOne {
+	aeuo.mutation.SetAlertID(u)
+	return aeuo
+}
+
+// SetNillableAlertID sets the "alert_id" field if the given value is not nil.
+func (aeuo *AlertEventUpdateOne) SetNillableAlertID(u *uuid.UUID) *AlertEventUpdateOne {
+	if u != nil {
+		aeuo.SetAlertID(*u)
+	}
+	return aeuo
+}
+
+// ClearAlertID clears the value of the "alert_id" field.
+func (aeuo *AlertEventUpdateOne) ClearAlertID() *AlertEventUpdateOne {
+	aeuo.mutation.ClearAlertID()
+	return aeuo
+}
+
+// SetType sets the "type" field.
+func (aeuo *AlertEventUpdateOne) SetType(a alertevent.Type) *AlertEventUpdateOne {
+	aeuo.mutation.SetType(a)
+	return aeuo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (aeuo *AlertEventUpdateOne) SetNillableType(a *alertevent.Type) *AlertEventUpdateOne {
 	if a != nil {
-		aeuo.SetStatus(*a)
+		aeuo.SetType(*a)
 	}
 	return aeuo
 }
@@ -326,6 +438,20 @@ func (aeuo *AlertEventUpdateOne) SetNillableMessage(s *string) *AlertEventUpdate
 	return aeuo
 }
 
+// SetStatus sets the "status" field.
+func (aeuo *AlertEventUpdateOne) SetStatus(a alertevent.Status) *AlertEventUpdateOne {
+	aeuo.mutation.SetStatus(a)
+	return aeuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aeuo *AlertEventUpdateOne) SetNillableStatus(a *alertevent.Status) *AlertEventUpdateOne {
+	if a != nil {
+		aeuo.SetStatus(*a)
+	}
+	return aeuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (aeuo *AlertEventUpdateOne) SetCreatedAt(t time.Time) *AlertEventUpdateOne {
 	aeuo.mutation.SetCreatedAt(t)
@@ -340,9 +466,9 @@ func (aeuo *AlertEventUpdateOne) SetNillableCreatedAt(t *time.Time) *AlertEventU
 	return aeuo
 }
 
-// SetAlert sets the "alert" edge to the Alert entity.
-func (aeuo *AlertEventUpdateOne) SetAlert(a *Alert) *AlertEventUpdateOne {
-	return aeuo.SetAlertID(a.ID)
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (aeuo *AlertEventUpdateOne) SetTenant(t *Tenant) *AlertEventUpdateOne {
+	return aeuo.SetTenantID(t.ID)
 }
 
 // SetMonitor sets the "monitor" edge to the Monitor entity.
@@ -350,20 +476,31 @@ func (aeuo *AlertEventUpdateOne) SetMonitor(m *Monitor) *AlertEventUpdateOne {
 	return aeuo.SetMonitorID(m.ID)
 }
 
+// SetAlert sets the "alert" edge to the Alert entity.
+func (aeuo *AlertEventUpdateOne) SetAlert(a *Alert) *AlertEventUpdateOne {
+	return aeuo.SetAlertID(a.ID)
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (aeuo *AlertEventUpdateOne) Mutation() *AlertEventMutation {
 	return aeuo.mutation
 }
 
-// ClearAlert clears the "alert" edge to the Alert entity.
-func (aeuo *AlertEventUpdateOne) ClearAlert() *AlertEventUpdateOne {
-	aeuo.mutation.ClearAlert()
+// ClearTenant clears the "tenant" edge to the Tenant entity.
+func (aeuo *AlertEventUpdateOne) ClearTenant() *AlertEventUpdateOne {
+	aeuo.mutation.ClearTenant()
 	return aeuo
 }
 
 // ClearMonitor clears the "monitor" edge to the Monitor entity.
 func (aeuo *AlertEventUpdateOne) ClearMonitor() *AlertEventUpdateOne {
 	aeuo.mutation.ClearMonitor()
+	return aeuo
+}
+
+// ClearAlert clears the "alert" edge to the Alert entity.
+func (aeuo *AlertEventUpdateOne) ClearAlert() *AlertEventUpdateOne {
+	aeuo.mutation.ClearAlert()
 	return aeuo
 }
 
@@ -409,16 +546,18 @@ func (aeuo *AlertEventUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (aeuo *AlertEventUpdateOne) check() error {
+	if v, ok := aeuo.mutation.GetType(); ok {
+		if err := alertevent.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.type": %w`, err)}
+		}
+	}
 	if v, ok := aeuo.mutation.Status(); ok {
 		if err := alertevent.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertEvent.status": %w`, err)}
 		}
 	}
-	if aeuo.mutation.AlertCleared() && len(aeuo.mutation.AlertIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AlertEvent.alert"`)
-	}
-	if aeuo.mutation.MonitorCleared() && len(aeuo.mutation.MonitorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AlertEvent.monitor"`)
+	if aeuo.mutation.TenantCleared() && len(aeuo.mutation.TenantIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "AlertEvent.tenant"`)
 	}
 	return nil
 }
@@ -452,37 +591,40 @@ func (aeuo *AlertEventUpdateOne) sqlSave(ctx context.Context) (_node *AlertEvent
 			}
 		}
 	}
-	if value, ok := aeuo.mutation.Status(); ok {
-		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
+	if value, ok := aeuo.mutation.GetType(); ok {
+		_spec.SetField(alertevent.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := aeuo.mutation.Message(); ok {
 		_spec.SetField(alertevent.FieldMessage, field.TypeString, value)
 	}
+	if value, ok := aeuo.mutation.Status(); ok {
+		_spec.SetField(alertevent.FieldStatus, field.TypeEnum, value)
+	}
 	if value, ok := aeuo.mutation.CreatedAt(); ok {
 		_spec.SetField(alertevent.FieldCreatedAt, field.TypeTime, value)
 	}
-	if aeuo.mutation.AlertCleared() {
+	if aeuo.mutation.TenantCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   alertevent.AlertTable,
-			Columns: []string{alertevent.AlertColumn},
+			Table:   alertevent.TenantTable,
+			Columns: []string{alertevent.TenantColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := aeuo.mutation.AlertIDs(); len(nodes) > 0 {
+	if nodes := aeuo.mutation.TenantIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   alertevent.AlertTable,
-			Columns: []string{alertevent.AlertColumn},
+			Table:   alertevent.TenantTable,
+			Columns: []string{alertevent.TenantColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -512,6 +654,35 @@ func (aeuo *AlertEventUpdateOne) sqlSave(ctx context.Context) (_node *AlertEvent
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(monitor.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aeuo.mutation.AlertCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   alertevent.AlertTable,
+			Columns: []string{alertevent.AlertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aeuo.mutation.AlertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   alertevent.AlertTable,
+			Columns: []string{alertevent.AlertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(alert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

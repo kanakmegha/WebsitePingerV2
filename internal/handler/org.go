@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/invite"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/user"
@@ -173,6 +174,21 @@ func (h *OrgHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "failed to create invitation"})
 		return
+	}
+
+	// Create AlertEvent for invite sent
+	evtMsg := fmt.Sprintf("Invite sent to %s", req.Email)
+	evt, evtErr := h.client.AlertEvent.Create().
+		SetTenantID(tenantID).
+		SetType(alertevent.TypeInviteSent).
+		SetMessage(evtMsg).
+		SetStatus(alertevent.StatusUnread).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
+	if evtErr != nil {
+		log.Printf("[ALERT CREATION ERROR] Failed to record invite_sent alert event for tenant=%s: %v\n", tenantID, evtErr)
+	} else {
+		log.Printf("[ALERT CREATED] id=%s tenant=%s type=invite_sent message=%s\n", evt.ID, tenantID, evtMsg)
 	}
 
 	// Build dynamic environment-driven invite URL (APP_BASE_URL/invite/<token>)
@@ -420,6 +436,23 @@ func (h *OrgHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// Create AlertEvent for invite accepted inside transaction
+	evtMsg := fmt.Sprintf("%s joined the organization", inv.Email)
+	evt, evtErr := tx.AlertEvent.Create().
+		SetTenantID(inv.TenantID).
+		SetType(alertevent.TypeInviteAccepted).
+		SetMessage(evtMsg).
+		SetStatus(alertevent.StatusUnread).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
+	if evtErr != nil {
+		log.Printf("[ORG ACCEPT] Failed to create alert event: %v\n", evtErr)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "failed to record acceptance alert"})
+		return
+	}
+	log.Printf("[ALERT CREATED] id=%s tenant=%s type=invite_accepted message=%s\n", evt.ID, inv.TenantID, evtMsg)
 
 	// Delete used invite record from DB (enforce single-use token)
 	if err := tx.Invite.DeleteOne(inv).Exec(ctx); err != nil {

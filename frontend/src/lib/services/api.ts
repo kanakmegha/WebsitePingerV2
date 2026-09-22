@@ -108,17 +108,37 @@ export async function apiFetch(
 	return res;
 }
 
-export const MOCK_ALERTS: AlertEvent[] = [
-	{
-		id: "alt-1",
-		alert_id: "a-1",
-		monitor_id: "mon-101",
-		monitor_name: "PCAPPA Main Domain",
-		status: "triggered",
-		message: "HTTP response time exceeded 1000ms threshold (1500ms)",
-		created_at: new Date(Date.now() - 3600000).toISOString(),
-	},
-];
+export async function fetchAlerts(): Promise<AlertEvent[]> {
+	try {
+		const res = await apiFetch("/alerts");
+		if (res.ok) {
+			return await res.json();
+		}
+	} catch (e) {
+		console.warn("Failed to fetch alerts from backend:", e);
+	}
+	return [];
+}
+
+export async function markAlertAsRead(id: string): Promise<void> {
+	const res = await apiFetch(`/alerts/${id}/read`, {
+		method: "PUT",
+	});
+	if (!res.ok) {
+		const errData = await res.json().catch(() => ({}));
+		throw new Error(errData.error || "Failed to mark alert as read");
+	}
+}
+
+export async function markAllAlertsAsRead(): Promise<void> {
+	const res = await apiFetch("/alerts/read-all", {
+		method: "PUT",
+	});
+	if (!res.ok) {
+		const errData = await res.json().catch(() => ({}));
+		throw new Error(errData.error || "Failed to mark all alerts as read");
+	}
+}
 
 export const MOCK_MONITORS: Monitor[] = [
 	{

@@ -97,13 +97,16 @@ export interface Monitor {
 	latest_http?: HTTPCheckResult;
 }
 
+export type AlertType = 'incident' | 'recovery' | 'invite_sent' | 'invite_accepted';
+
 export interface AlertEvent {
 	id: string;
-	alert_id: string;
-	monitor_id: string;
-	monitor_name?: string;
-	status: 'triggered' | 'resolved';
+	tenant_id: string;
+	monitor_id?: string;
+	alert_id?: string;
+	type: AlertType;
 	message: string;
+	status: 'unread' | 'read';
 	created_at: string;
 }
 

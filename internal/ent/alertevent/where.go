@@ -56,14 +56,19 @@ func IDLTE(id uuid.UUID) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldLTE(FieldID, id))
 }
 
-// AlertID applies equality check predicate on the "alert_id" field. It's identical to AlertIDEQ.
-func AlertID(v uuid.UUID) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldEQ(FieldAlertID, v))
+// TenantID applies equality check predicate on the "tenant_id" field. It's identical to TenantIDEQ.
+func TenantID(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldTenantID, v))
 }
 
 // MonitorID applies equality check predicate on the "monitor_id" field. It's identical to MonitorIDEQ.
 func MonitorID(v uuid.UUID) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldMonitorID, v))
+}
+
+// AlertID applies equality check predicate on the "alert_id" field. It's identical to AlertIDEQ.
+func AlertID(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAlertID, v))
 }
 
 // Message applies equality check predicate on the "message" field. It's identical to MessageEQ.
@@ -76,24 +81,24 @@ func CreatedAt(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// AlertIDEQ applies the EQ predicate on the "alert_id" field.
-func AlertIDEQ(v uuid.UUID) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldEQ(FieldAlertID, v))
+// TenantIDEQ applies the EQ predicate on the "tenant_id" field.
+func TenantIDEQ(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldTenantID, v))
 }
 
-// AlertIDNEQ applies the NEQ predicate on the "alert_id" field.
-func AlertIDNEQ(v uuid.UUID) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldNEQ(FieldAlertID, v))
+// TenantIDNEQ applies the NEQ predicate on the "tenant_id" field.
+func TenantIDNEQ(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldTenantID, v))
 }
 
-// AlertIDIn applies the In predicate on the "alert_id" field.
-func AlertIDIn(vs ...uuid.UUID) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldIn(FieldAlertID, vs...))
+// TenantIDIn applies the In predicate on the "tenant_id" field.
+func TenantIDIn(vs ...uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldTenantID, vs...))
 }
 
-// AlertIDNotIn applies the NotIn predicate on the "alert_id" field.
-func AlertIDNotIn(vs ...uuid.UUID) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldNotIn(FieldAlertID, vs...))
+// TenantIDNotIn applies the NotIn predicate on the "tenant_id" field.
+func TenantIDNotIn(vs ...uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldTenantID, vs...))
 }
 
 // MonitorIDEQ applies the EQ predicate on the "monitor_id" field.
@@ -116,24 +121,64 @@ func MonitorIDNotIn(vs ...uuid.UUID) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldNotIn(FieldMonitorID, vs...))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldEQ(FieldStatus, v))
+// MonitorIDIsNil applies the IsNil predicate on the "monitor_id" field.
+func MonitorIDIsNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIsNull(FieldMonitorID))
 }
 
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldNEQ(FieldStatus, v))
+// MonitorIDNotNil applies the NotNil predicate on the "monitor_id" field.
+func MonitorIDNotNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotNull(FieldMonitorID))
 }
 
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldIn(FieldStatus, vs...))
+// AlertIDEQ applies the EQ predicate on the "alert_id" field.
+func AlertIDEQ(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldAlertID, v))
 }
 
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.AlertEvent {
-	return predicate.AlertEvent(sql.FieldNotIn(FieldStatus, vs...))
+// AlertIDNEQ applies the NEQ predicate on the "alert_id" field.
+func AlertIDNEQ(v uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldAlertID, v))
+}
+
+// AlertIDIn applies the In predicate on the "alert_id" field.
+func AlertIDIn(vs ...uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldAlertID, vs...))
+}
+
+// AlertIDNotIn applies the NotIn predicate on the "alert_id" field.
+func AlertIDNotIn(vs ...uuid.UUID) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldAlertID, vs...))
+}
+
+// AlertIDIsNil applies the IsNil predicate on the "alert_id" field.
+func AlertIDIsNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIsNull(FieldAlertID))
+}
+
+// AlertIDNotNil applies the NotNil predicate on the "alert_id" field.
+func AlertIDNotNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotNull(FieldAlertID))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v Type) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v Type) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...Type) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...Type) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldType, vs...))
 }
 
 // MessageEQ applies the EQ predicate on the "message" field.
@@ -201,6 +246,26 @@ func MessageContainsFold(v string) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldContainsFold(FieldMessage, v))
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldStatus, vs...))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldCreatedAt, v))
@@ -241,21 +306,21 @@ func CreatedAtLTE(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldLTE(FieldCreatedAt, v))
 }
 
-// HasAlert applies the HasEdge predicate on the "alert" edge.
-func HasAlert() predicate.AlertEvent {
+// HasTenant applies the HasEdge predicate on the "tenant" edge.
+func HasTenant() predicate.AlertEvent {
 	return predicate.AlertEvent(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, AlertTable, AlertColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasAlertWith applies the HasEdge predicate on the "alert" edge with a given conditions (other predicates).
-func HasAlertWith(preds ...predicate.Alert) predicate.AlertEvent {
+// HasTenantWith applies the HasEdge predicate on the "tenant" edge with a given conditions (other predicates).
+func HasTenantWith(preds ...predicate.Tenant) predicate.AlertEvent {
 	return predicate.AlertEvent(func(s *sql.Selector) {
-		step := newAlertStep()
+		step := newTenantStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -279,6 +344,29 @@ func HasMonitor() predicate.AlertEvent {
 func HasMonitorWith(preds ...predicate.Monitor) predicate.AlertEvent {
 	return predicate.AlertEvent(func(s *sql.Selector) {
 		step := newMonitorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAlert applies the HasEdge predicate on the "alert" edge.
+func HasAlert() predicate.AlertEvent {
+	return predicate.AlertEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AlertTable, AlertColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAlertWith applies the HasEdge predicate on the "alert" edge with a given conditions (other predicates).
+func HasAlertWith(preds ...predicate.Alert) predicate.AlertEvent {
+	return predicate.AlertEvent(func(s *sql.Selector) {
+		step := newAlertStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -33,6 +33,8 @@ const (
 	EdgeSettings = "settings"
 	// EdgeInvites holds the string denoting the invites edge name in mutations.
 	EdgeInvites = "invites"
+	// EdgeAlertEvents holds the string denoting the alert_events edge name in mutations.
+	EdgeAlertEvents = "alert_events"
 	// Table holds the table name of the tenant in the database.
 	Table = "tenants"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -77,6 +79,13 @@ const (
 	InvitesInverseTable = "invites"
 	// InvitesColumn is the table column denoting the invites relation/edge.
 	InvitesColumn = "tenant_id"
+	// AlertEventsTable is the table that holds the alert_events relation/edge.
+	AlertEventsTable = "alert_events"
+	// AlertEventsInverseTable is the table name for the AlertEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "alertevent" package.
+	AlertEventsInverseTable = "alert_events"
+	// AlertEventsColumn is the table column denoting the alert_events relation/edge.
+	AlertEventsColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for tenant fields.
@@ -207,6 +216,20 @@ func ByInvites(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newInvitesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAlertEventsCount orders the results by alert_events count.
+func ByAlertEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAlertEventsStep(), opts...)
+	}
+}
+
+// ByAlertEvents orders the results by alert_events terms.
+func ByAlertEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAlertEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -247,5 +270,12 @@ func newInvitesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(InvitesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, InvitesTable, InvitesColumn),
+	)
+}
+func newAlertEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AlertEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AlertEventsTable, AlertEventsColumn),
 	)
 }
