@@ -20,15 +20,23 @@
 		Search,
 		Filter,
 		Grid,
-		List
+		List,
+		Plus
 	} from '@lucide/svelte';
 
-	let viewMode = $state<'grid' | 'table'>('table');
+	let viewMode = $state<'grid' | 'table'>('grid');
 	let settings = $state<TenantSettings | null>(null);
 
 	onMount(() => {
 		monitorsStore.load();
 		fetchTenantSettings().then((s) => (settings = s));
+
+		// Set default view mode: Card style ('grid') on mobile screens (< 768px), Table style on desktop
+		if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+			viewMode = 'table';
+		} else {
+			viewMode = 'grid';
+		}
 
 		const interval = setInterval(() => {
 			monitorsStore.load();
@@ -159,6 +167,15 @@
 					<Grid class="h-4 w-4" />
 				</button>
 			</div>
+
+			<a
+				href="/add-monitor"
+				class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-95 shrink-0 min-h-[36px]"
+				title="Add New Monitor URL"
+			>
+				<Plus class="h-4 w-4 stroke-[3]" />
+				<span class="inline sm:hidden lg:inline">Add URL</span>
+			</a>
 		</div>
 	</div>
 

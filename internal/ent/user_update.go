@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/predicate"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/user"
 )
 
@@ -87,6 +88,21 @@ func (uu *UserUpdate) AddMemberships(m ...*Membership) *UserUpdate {
 	return uu.AddMembershipIDs(ids...)
 }
 
+// AddPushSubscriptionIDs adds the "push_subscriptions" edge to the PushSubscription entity by IDs.
+func (uu *UserUpdate) AddPushSubscriptionIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddPushSubscriptionIDs(ids...)
+	return uu
+}
+
+// AddPushSubscriptions adds the "push_subscriptions" edges to the PushSubscription entity.
+func (uu *UserUpdate) AddPushSubscriptions(p ...*PushSubscription) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddPushSubscriptionIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -111,6 +127,27 @@ func (uu *UserUpdate) RemoveMemberships(m ...*Membership) *UserUpdate {
 		ids[i] = m[i].ID
 	}
 	return uu.RemoveMembershipIDs(ids...)
+}
+
+// ClearPushSubscriptions clears all "push_subscriptions" edges to the PushSubscription entity.
+func (uu *UserUpdate) ClearPushSubscriptions() *UserUpdate {
+	uu.mutation.ClearPushSubscriptions()
+	return uu
+}
+
+// RemovePushSubscriptionIDs removes the "push_subscriptions" edge to PushSubscription entities by IDs.
+func (uu *UserUpdate) RemovePushSubscriptionIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemovePushSubscriptionIDs(ids...)
+	return uu
+}
+
+// RemovePushSubscriptions removes "push_subscriptions" edges to PushSubscription entities.
+func (uu *UserUpdate) RemovePushSubscriptions(p ...*PushSubscription) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemovePushSubscriptionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -221,6 +258,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedPushSubscriptionsIDs(); len(nodes) > 0 && !uu.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PushSubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -298,6 +380,21 @@ func (uuo *UserUpdateOne) AddMemberships(m ...*Membership) *UserUpdateOne {
 	return uuo.AddMembershipIDs(ids...)
 }
 
+// AddPushSubscriptionIDs adds the "push_subscriptions" edge to the PushSubscription entity by IDs.
+func (uuo *UserUpdateOne) AddPushSubscriptionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddPushSubscriptionIDs(ids...)
+	return uuo
+}
+
+// AddPushSubscriptions adds the "push_subscriptions" edges to the PushSubscription entity.
+func (uuo *UserUpdateOne) AddPushSubscriptions(p ...*PushSubscription) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddPushSubscriptionIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -322,6 +419,27 @@ func (uuo *UserUpdateOne) RemoveMemberships(m ...*Membership) *UserUpdateOne {
 		ids[i] = m[i].ID
 	}
 	return uuo.RemoveMembershipIDs(ids...)
+}
+
+// ClearPushSubscriptions clears all "push_subscriptions" edges to the PushSubscription entity.
+func (uuo *UserUpdateOne) ClearPushSubscriptions() *UserUpdateOne {
+	uuo.mutation.ClearPushSubscriptions()
+	return uuo
+}
+
+// RemovePushSubscriptionIDs removes the "push_subscriptions" edge to PushSubscription entities by IDs.
+func (uuo *UserUpdateOne) RemovePushSubscriptionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemovePushSubscriptionIDs(ids...)
+	return uuo
+}
+
+// RemovePushSubscriptions removes "push_subscriptions" edges to PushSubscription entities.
+func (uuo *UserUpdateOne) RemovePushSubscriptions(p ...*PushSubscription) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemovePushSubscriptionIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -455,6 +573,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(membership.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedPushSubscriptionsIDs(); len(nodes) > 0 && !uuo.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PushSubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PushSubscriptionsTable,
+			Columns: []string{user.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

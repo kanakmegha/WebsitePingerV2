@@ -368,6 +368,48 @@ var (
 			},
 		},
 	}
+	// PushSubscriptionsColumns holds the columns for the "push_subscriptions" table.
+	PushSubscriptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "endpoint", Type: field.TypeString},
+		{Name: "p256dh", Type: field.TypeString},
+		{Name: "auth", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// PushSubscriptionsTable holds the schema information for the "push_subscriptions" table.
+	PushSubscriptionsTable = &schema.Table{
+		Name:       "push_subscriptions",
+		Columns:    PushSubscriptionsColumns,
+		PrimaryKey: []*schema.Column{PushSubscriptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "push_subscriptions_tenants_push_subscriptions",
+				Columns:    []*schema.Column{PushSubscriptionsColumns[5]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "push_subscriptions_users_push_subscriptions",
+				Columns:    []*schema.Column{PushSubscriptionsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pushsubscription_user_id_endpoint",
+				Unique:  true,
+				Columns: []*schema.Column{PushSubscriptionsColumns[6], PushSubscriptionsColumns[1]},
+			},
+			{
+				Name:    "pushsubscription_tenant_id",
+				Unique:  false,
+				Columns: []*schema.Column{PushSubscriptionsColumns[5]},
+			},
+		},
+	}
 	// SslCheckResultsColumns holds the columns for the "ssl_check_results" table.
 	SslCheckResultsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -464,6 +506,7 @@ var (
 		MonitorChecksTable,
 		MonitorCheckConfigsTable,
 		NotificationChannelsTable,
+		PushSubscriptionsTable,
 		SslCheckResultsTable,
 		TenantsTable,
 		TenantSettingsTable,
@@ -487,6 +530,8 @@ func init() {
 	MonitorChecksTable.ForeignKeys[0].RefTable = MonitorsTable
 	MonitorCheckConfigsTable.ForeignKeys[0].RefTable = MonitorsTable
 	NotificationChannelsTable.ForeignKeys[0].RefTable = TenantsTable
+	PushSubscriptionsTable.ForeignKeys[0].RefTable = TenantsTable
+	PushSubscriptionsTable.ForeignKeys[1].RefTable = UsersTable
 	SslCheckResultsTable.ForeignKeys[0].RefTable = MonitorChecksTable
 	TenantSettingsTable.ForeignKeys[0].RefTable = TenantsTable
 }

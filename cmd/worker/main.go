@@ -19,6 +19,8 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/queue"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ratelimit"
 
+	"github.com/kanakmegha/WebsitePingerV2/internal/push"
+
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 )
@@ -72,7 +74,8 @@ func main() {
 
 	emailCfg := email.LoadConfigFromEnv()
 	emailSvc := email.NewService(emailCfg)
-	alertEng := alert.NewEngine(client, rdb, emailSvc)
+	pushSvc := push.NewPushService(client)
+	alertEng := alert.NewEngine(client, rdb, emailSvc, pushSvc)
 
 	const workerCount = 50
 	var wg sync.WaitGroup

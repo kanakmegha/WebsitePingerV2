@@ -39,6 +39,9 @@ type MonitorCheckConfig func(*sql.Selector)
 // NotificationChannel is the predicate function for notificationchannel builders.
 type NotificationChannel func(*sql.Selector)
 
+// PushSubscription is the predicate function for pushsubscription builders.
+type PushSubscription func(*sql.Selector)
+
 // SSLCheckResult is the predicate function for sslcheckresult builders.
 type SSLCheckResult func(*sql.Selector)
 

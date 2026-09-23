@@ -35,6 +35,8 @@ const (
 	EdgeInvites = "invites"
 	// EdgeAlertEvents holds the string denoting the alert_events edge name in mutations.
 	EdgeAlertEvents = "alert_events"
+	// EdgePushSubscriptions holds the string denoting the push_subscriptions edge name in mutations.
+	EdgePushSubscriptions = "push_subscriptions"
 	// Table holds the table name of the tenant in the database.
 	Table = "tenants"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -86,6 +88,13 @@ const (
 	AlertEventsInverseTable = "alert_events"
 	// AlertEventsColumn is the table column denoting the alert_events relation/edge.
 	AlertEventsColumn = "tenant_id"
+	// PushSubscriptionsTable is the table that holds the push_subscriptions relation/edge.
+	PushSubscriptionsTable = "push_subscriptions"
+	// PushSubscriptionsInverseTable is the table name for the PushSubscription entity.
+	// It exists in this package in order to avoid circular dependency with the "pushsubscription" package.
+	PushSubscriptionsInverseTable = "push_subscriptions"
+	// PushSubscriptionsColumn is the table column denoting the push_subscriptions relation/edge.
+	PushSubscriptionsColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for tenant fields.
@@ -230,6 +239,20 @@ func ByAlertEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAlertEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPushSubscriptionsCount orders the results by push_subscriptions count.
+func ByPushSubscriptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPushSubscriptionsStep(), opts...)
+	}
+}
+
+// ByPushSubscriptions orders the results by push_subscriptions terms.
+func ByPushSubscriptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPushSubscriptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -277,5 +300,12 @@ func newAlertEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AlertEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AlertEventsTable, AlertEventsColumn),
+	)
+}
+func newPushSubscriptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PushSubscriptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PushSubscriptionsTable, PushSubscriptionsColumn),
 	)
 }

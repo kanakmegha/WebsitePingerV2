@@ -402,6 +402,29 @@ func HasAlertEventsWith(preds ...predicate.AlertEvent) predicate.Tenant {
 	})
 }
 
+// HasPushSubscriptions applies the HasEdge predicate on the "push_subscriptions" edge.
+func HasPushSubscriptions() predicate.Tenant {
+	return predicate.Tenant(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PushSubscriptionsTable, PushSubscriptionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPushSubscriptionsWith applies the HasEdge predicate on the "push_subscriptions" edge with a given conditions (other predicates).
+func HasPushSubscriptionsWith(preds ...predicate.PushSubscription) predicate.Tenant {
+	return predicate.Tenant(func(s *sql.Selector) {
+		step := newPushSubscriptionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Tenant) predicate.Tenant {
 	return predicate.Tenant(sql.AndPredicates(predicates...))

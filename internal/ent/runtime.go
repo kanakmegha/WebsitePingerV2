@@ -17,6 +17,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheckconfig"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/schema"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/sslcheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
@@ -178,6 +179,28 @@ func init() {
 	notificationchannelDescID := notificationchannelFields[0].Descriptor()
 	// notificationchannel.DefaultID holds the default value on creation for the id field.
 	notificationchannel.DefaultID = notificationchannelDescID.Default.(func() uuid.UUID)
+	pushsubscriptionFields := schema.PushSubscription{}.Fields()
+	_ = pushsubscriptionFields
+	// pushsubscriptionDescEndpoint is the schema descriptor for endpoint field.
+	pushsubscriptionDescEndpoint := pushsubscriptionFields[3].Descriptor()
+	// pushsubscription.EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
+	pushsubscription.EndpointValidator = pushsubscriptionDescEndpoint.Validators[0].(func(string) error)
+	// pushsubscriptionDescP256dh is the schema descriptor for p256dh field.
+	pushsubscriptionDescP256dh := pushsubscriptionFields[4].Descriptor()
+	// pushsubscription.P256dhValidator is a validator for the "p256dh" field. It is called by the builders before save.
+	pushsubscription.P256dhValidator = pushsubscriptionDescP256dh.Validators[0].(func(string) error)
+	// pushsubscriptionDescAuth is the schema descriptor for auth field.
+	pushsubscriptionDescAuth := pushsubscriptionFields[5].Descriptor()
+	// pushsubscription.AuthValidator is a validator for the "auth" field. It is called by the builders before save.
+	pushsubscription.AuthValidator = pushsubscriptionDescAuth.Validators[0].(func(string) error)
+	// pushsubscriptionDescCreatedAt is the schema descriptor for created_at field.
+	pushsubscriptionDescCreatedAt := pushsubscriptionFields[6].Descriptor()
+	// pushsubscription.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pushsubscription.DefaultCreatedAt = pushsubscriptionDescCreatedAt.Default.(func() time.Time)
+	// pushsubscriptionDescID is the schema descriptor for id field.
+	pushsubscriptionDescID := pushsubscriptionFields[0].Descriptor()
+	// pushsubscription.DefaultID holds the default value on creation for the id field.
+	pushsubscription.DefaultID = pushsubscriptionDescID.Default.(func() uuid.UUID)
 	sslcheckresultFields := schema.SSLCheckResult{}.Fields()
 	_ = sslcheckresultFields
 	// sslcheckresultDescID is the schema descriptor for id field.

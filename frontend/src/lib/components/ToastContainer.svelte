@@ -3,10 +3,10 @@
 	import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from '@lucide/svelte';
 </script>
 
-<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+<div class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2.5 max-w-[320px] sm:max-w-md w-full px-4 pointer-events-none pb-safe">
 	{#each $toastStore as toast (toast.id)}
 		<div
-			class="pointer-events-auto flex items-center justify-between gap-3 rounded-xl border p-4 shadow-2xl backdrop-blur transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 {toast.type === 'success'
+			class="pointer-events-auto flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-xs shadow-2xl backdrop-blur transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 max-w-[320px] sm:max-w-md w-full {toast.type === 'success'
 				? 'border-emerald-500/30 bg-slate-900/95 text-emerald-300 shadow-emerald-500/10'
 				: toast.type === 'error'
 					? 'border-red-500/30 bg-slate-900/95 text-red-300 shadow-red-500/10'

@@ -35,5 +35,7 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("memberships", Membership.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("push_subscriptions", PushSubscription.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

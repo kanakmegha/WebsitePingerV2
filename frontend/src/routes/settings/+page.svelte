@@ -2,7 +2,16 @@
 	import { fetchTenantSettings, updateTenantSettings } from '$lib/services/api';
 	import { toastStore } from '$lib/stores/toast';
 	import type { TenantSettings } from '$lib/types';
-	import { Mail, Webhook, MessageSquare, Save, CheckCircle2, Clock, ShieldAlert, AlertCircle } from '@lucide/svelte';
+	import {
+		isPushSupported,
+		getNotificationPermission,
+		getPushDiagnostics,
+		subscribeUserToPush,
+		unsubscribeUserFromPush,
+		checkCurrentSubscription,
+		type PushDiagnosticReport
+	} from '$lib/services/push';
+	import { Mail, Webhook, MessageSquare, Save, CheckCircle2, Clock, ShieldAlert, AlertCircle, Bell, BellOff, Info, Terminal } from '@lucide/svelte';
 
 	let settings = $state<TenantSettings>({
 		http_interval_seconds: 60,
@@ -18,6 +27,54 @@
 	let isSaving = $state(false);
 	let isSaved = $state(false);
 	let errorMessage = $state('');
+
+	// Push Notifications state
+	let pushSupported = $state(false);
+	let pushPermission = $state<string>('default');
+	let isPushSubscribed = $state(false);
+	let isPushToggling = $state(false);
+	let pushDiag = $state<PushDiagnosticReport>(getPushDiagnostics());
+
+	function runDiagnostics() {
+		pushDiag = getPushDiagnostics();
+		toastStore.show(`Push Diagnostics: ${pushDiag.status} (${pushDiag.reason})`, 'info');
+	}
+
+	$effect(() => {
+		pushDiag = getPushDiagnostics();
+		pushSupported = isPushSupported();
+		pushPermission = getNotificationPermission();
+
+		if (pushSupported) {
+			checkCurrentSubscription().then((sub) => {
+				isPushSubscribed = !!sub;
+			});
+		}
+	});
+
+	async function togglePushNotifications(e: Event) {
+		const target = e.target as HTMLInputElement;
+		const shouldSubscribe = target.checked;
+		isPushToggling = true;
+
+		try {
+			if (shouldSubscribe) {
+				await subscribeUserToPush();
+				isPushSubscribed = true;
+				pushPermission = getNotificationPermission();
+				toastStore.show('Web Push notifications enabled successfully!', 'success');
+			} else {
+				await unsubscribeUserFromPush();
+				isPushSubscribed = false;
+				toastStore.show('Web Push notifications disabled.', 'info');
+			}
+		} catch (err: any) {
+			target.checked = !shouldSubscribe;
+			toastStore.show(err.message || 'Failed to update push subscription', 'error');
+		} finally {
+			isPushToggling = false;
+		}
+	}
 
 	// Notification channel local UI state
 	let emailAlerts = $state(true);
@@ -313,6 +370,111 @@
 						/>
 					</div>
 				{/if}
+			</div>
+
+			<!-- Web Push Notifications PWA Card -->
+			<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-xl space-y-4">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<div class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/60 text-purple-400">
+							{#if isPushSubscribed}
+								<Bell class="h-5 w-5 text-emerald-400" />
+							{:else}
+								<BellOff class="h-5 w-5 text-slate-400" />
+							{/if}
+						</div>
+						<div>
+							<div class="flex flex-wrap items-center gap-2">
+								<h3 class="text-sm font-bold text-white">Browser Web Push Notifications</h3>
+								{#if pushDiag.status === 'insecure_context'}
+									<span class="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+										Insecure Context (Not HTTPS)
+									</span>
+								{:else if pushDiag.status === 'ios_home_screen_required'}
+									<span class="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+										iOS: Home Screen PWA Required
+									</span>
+								{:else if pushDiag.status === 'api_unsupported'}
+									<span class="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+										Push API Unavailable
+									</span>
+								{:else if pushPermission === 'denied'}
+									<span class="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+										Blocked in Browser
+									</span>
+								{:else if isPushSubscribed}
+									<span class="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+										Enabled
+									</span>
+								{:else}
+									<span class="rounded-full bg-slate-800 px-2.5 py-0.5 text-[10px] font-bold text-slate-400 border border-slate-700">
+										Disabled
+									</span>
+								{/if}
+							</div>
+							<p class="text-xs text-slate-400 mt-0.5">Receive instant native alerts for downtime incidents & team invites on mobile and desktop</p>
+						</div>
+					</div>
+
+					<input
+						type="checkbox"
+						checked={isPushSubscribed}
+						disabled={!pushSupported || pushPermission === 'denied' || isPushToggling}
+						onchange={togglePushNotifications}
+						class="h-5 w-5 accent-emerald-500 rounded disabled:opacity-50 cursor-pointer shrink-0"
+					/>
+				</div>
+
+				<!-- Diagnostic Feedback Boxes -->
+				{#if pushDiag.status === 'insecure_context'}
+					<div class="rounded-xl border border-red-500/30 bg-red-950/20 p-4 space-y-2 text-xs text-red-200">
+						<div class="flex items-center gap-2 font-bold text-red-400">
+							<AlertCircle class="h-4 w-4 shrink-0" />
+							<span>Insecure Context Detected ({pushDiag.hostname})</span>
+						</div>
+						<p class="font-mono text-[11px] leading-relaxed text-red-300">
+							{pushDiag.reason}
+						</p>
+						<div class="pt-1 text-[11px] font-semibold text-red-400">
+							💡 Solution: {pushDiag.recommendation}
+						</div>
+					</div>
+				{:else if pushDiag.status === 'ios_home_screen_required'}
+					<div class="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-2 text-xs text-amber-200">
+						<div class="flex items-center gap-2 font-bold text-amber-400">
+							<Info class="h-4 w-4 shrink-0" />
+							<span>iOS Home Screen PWA Required</span>
+						</div>
+						<p class="text-[11px] leading-relaxed text-amber-300">
+							{pushDiag.reason}
+						</p>
+						<div class="pt-1 text-[11px] font-semibold text-amber-400">
+							💡 Instructions: {pushDiag.recommendation}
+						</div>
+					</div>
+				{:else if pushPermission === 'denied'}
+					<div class="rounded-xl border border-red-500/30 bg-red-950/20 p-4 space-y-2 text-xs text-red-200">
+						<div class="flex items-center gap-2 font-bold text-red-400">
+							<AlertCircle class="h-4 w-4 shrink-0" />
+							<span>Notification Permission Blocked</span>
+						</div>
+						<p class="text-[11px] text-red-300">
+							Notification permissions are blocked in your browser settings. To allow alerts, click the lock icon in your browser address bar and enable Notifications for this site.
+						</p>
+					</div>
+				{/if}
+
+				<div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 font-mono">
+					<span>Environment: {pushDiag.hostname || 'localhost'} ({pushDiag.isSecureContext ? 'Secure Context' : 'Non-Secure Context'})</span>
+					<button
+						type="button"
+						onclick={runDiagnostics}
+						class="inline-flex items-center gap-1 text-slate-400 hover:text-emerald-400 transition"
+					>
+						<Terminal class="h-3.5 w-3.5" />
+						Run Push Diagnostics
+					</button>
+				</div>
 			</div>
 
 			<button

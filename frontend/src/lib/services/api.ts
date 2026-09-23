@@ -14,7 +14,7 @@ import { tenantStore } from "$lib/stores/tenant";
 import { authStore } from "$lib/stores/auth";
 import { get } from "svelte/store";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4002") + "/api";
 
 export function getAuthToken(): string {
 	if (typeof window !== "undefined") {

@@ -19,6 +19,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/predicate"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenantsetting"
 )
@@ -187,6 +188,21 @@ func (tu *TenantUpdate) AddAlertEvents(a ...*AlertEvent) *TenantUpdate {
 	return tu.AddAlertEventIDs(ids...)
 }
 
+// AddPushSubscriptionIDs adds the "push_subscriptions" edge to the PushSubscription entity by IDs.
+func (tu *TenantUpdate) AddPushSubscriptionIDs(ids ...uuid.UUID) *TenantUpdate {
+	tu.mutation.AddPushSubscriptionIDs(ids...)
+	return tu
+}
+
+// AddPushSubscriptions adds the "push_subscriptions" edges to the PushSubscription entity.
+func (tu *TenantUpdate) AddPushSubscriptions(p ...*PushSubscription) *TenantUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tu.AddPushSubscriptionIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (tu *TenantUpdate) Mutation() *TenantMutation {
 	return tu.mutation
@@ -322,6 +338,27 @@ func (tu *TenantUpdate) RemoveAlertEvents(a ...*AlertEvent) *TenantUpdate {
 		ids[i] = a[i].ID
 	}
 	return tu.RemoveAlertEventIDs(ids...)
+}
+
+// ClearPushSubscriptions clears all "push_subscriptions" edges to the PushSubscription entity.
+func (tu *TenantUpdate) ClearPushSubscriptions() *TenantUpdate {
+	tu.mutation.ClearPushSubscriptions()
+	return tu
+}
+
+// RemovePushSubscriptionIDs removes the "push_subscriptions" edge to PushSubscription entities by IDs.
+func (tu *TenantUpdate) RemovePushSubscriptionIDs(ids ...uuid.UUID) *TenantUpdate {
+	tu.mutation.RemovePushSubscriptionIDs(ids...)
+	return tu
+}
+
+// RemovePushSubscriptions removes "push_subscriptions" edges to PushSubscription entities.
+func (tu *TenantUpdate) RemovePushSubscriptions(p ...*PushSubscription) *TenantUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tu.RemovePushSubscriptionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -681,6 +718,51 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedPushSubscriptionsIDs(); len(nodes) > 0 && !tu.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.PushSubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{tenant.Label}
@@ -852,6 +934,21 @@ func (tuo *TenantUpdateOne) AddAlertEvents(a ...*AlertEvent) *TenantUpdateOne {
 	return tuo.AddAlertEventIDs(ids...)
 }
 
+// AddPushSubscriptionIDs adds the "push_subscriptions" edge to the PushSubscription entity by IDs.
+func (tuo *TenantUpdateOne) AddPushSubscriptionIDs(ids ...uuid.UUID) *TenantUpdateOne {
+	tuo.mutation.AddPushSubscriptionIDs(ids...)
+	return tuo
+}
+
+// AddPushSubscriptions adds the "push_subscriptions" edges to the PushSubscription entity.
+func (tuo *TenantUpdateOne) AddPushSubscriptions(p ...*PushSubscription) *TenantUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tuo.AddPushSubscriptionIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (tuo *TenantUpdateOne) Mutation() *TenantMutation {
 	return tuo.mutation
@@ -987,6 +1084,27 @@ func (tuo *TenantUpdateOne) RemoveAlertEvents(a ...*AlertEvent) *TenantUpdateOne
 		ids[i] = a[i].ID
 	}
 	return tuo.RemoveAlertEventIDs(ids...)
+}
+
+// ClearPushSubscriptions clears all "push_subscriptions" edges to the PushSubscription entity.
+func (tuo *TenantUpdateOne) ClearPushSubscriptions() *TenantUpdateOne {
+	tuo.mutation.ClearPushSubscriptions()
+	return tuo
+}
+
+// RemovePushSubscriptionIDs removes the "push_subscriptions" edge to PushSubscription entities by IDs.
+func (tuo *TenantUpdateOne) RemovePushSubscriptionIDs(ids ...uuid.UUID) *TenantUpdateOne {
+	tuo.mutation.RemovePushSubscriptionIDs(ids...)
+	return tuo
+}
+
+// RemovePushSubscriptions removes "push_subscriptions" edges to PushSubscription entities.
+func (tuo *TenantUpdateOne) RemovePushSubscriptions(p ...*PushSubscription) *TenantUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tuo.RemovePushSubscriptionIDs(ids...)
 }
 
 // Where appends a list predicates to the TenantUpdate builder.
@@ -1369,6 +1487,51 @@ func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (_node *Tenant, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedPushSubscriptionsIDs(); len(nodes) > 0 && !tuo.mutation.PushSubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.PushSubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/kanakmegha/WebsitePingerV2/internal/auth"
 	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
@@ -18,6 +19,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/user"
 	"github.com/kanakmegha/WebsitePingerV2/internal/handler"
 	customMiddleware "github.com/kanakmegha/WebsitePingerV2/internal/middleware"
+	"github.com/kanakmegha/WebsitePingerV2/internal/push"
 
 	_ "github.com/lib/pq"
 )
@@ -53,9 +55,15 @@ func seedDefaultUser(ctx context.Context, client *ent.Client) {
 		return
 	}
 
+	hashedPassword, err := auth.HashPassword(password)
+	if err != nil {
+		log.Printf("[SEED] Failed to hash seed password: %v", err)
+		return
+	}
+
 	u, err := tx.User.Create().
 		SetEmail(email).
-		SetPasswordHash(password).
+		SetPasswordHash(hashedPassword).
 		Save(ctx)
 	if err != nil {
 		log.Printf("[SEED] Failed to seed default user: %v", err)
@@ -93,7 +101,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "4002"
 	}
 
 	// Connect PostgreSQL via Ent ORM with retry logic
@@ -148,12 +156,14 @@ func main() {
 	})
 
 	emailSvc := email.NewService(email.LoadConfigFromEnv())
+	pushSvc := push.NewPushService(client)
 
 	authH := handler.NewAuthHandler(client)
 	monitorH := handler.NewMonitorHandler(client)
 	settingsH := handler.NewSettingsHandler(client)
-	orgH := handler.NewOrgHandler(client, emailSvc)
+	orgH := handler.NewOrgHandler(client, emailSvc, pushSvc)
 	alertH := handler.NewAlertHandler(client)
+	pushH := handler.NewPushHandler(client, pushSvc)
 
 	// Public Auth & Invite Routes
 	r.Post("/api/auth/register", authH.Register)
@@ -161,6 +171,7 @@ func main() {
 	r.Get("/api/orgs/invite/{token}", orgH.GetInviteDetails)
 	r.With(customMiddleware.OptionalAuth(client)).Post("/api/orgs/accept", orgH.AcceptInvite)
 	r.With(customMiddleware.OptionalAuth(client)).Post("/api/orgs/accept-invite", orgH.AcceptInvite)
+	r.Get("/api/push/vapid-key", pushH.GetVAPIDKey)
 
 	// Protected Multi-Tenant API Routes
 	r.Group(func(r chi.Router) {
@@ -186,6 +197,9 @@ func main() {
 		r.Get("/api/alerts", alertH.ListAlerts)
 		r.Put("/api/alerts/{id}/read", alertH.MarkAsRead)
 		r.Put("/api/alerts/read-all", alertH.MarkAllAsRead)
+
+		r.Post("/api/push/subscribe", pushH.Subscribe)
+		r.Post("/api/push/unsubscribe", pushH.Unsubscribe)
 	})
 
 	srv := &http.Server{

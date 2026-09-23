@@ -13,6 +13,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
+	"github.com/kanakmegha/WebsitePingerV2/internal/push"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -20,10 +21,11 @@ type Engine struct {
 	client   *ent.Client
 	rdb      *redis.Client
 	emailSvc *email.Service
+	pushSvc  *push.PushService
 }
 
-func NewEngine(client *ent.Client, rdb *redis.Client, emailSvc *email.Service) *Engine {
-	return &Engine{client: client, rdb: rdb, emailSvc: emailSvc}
+func NewEngine(client *ent.Client, rdb *redis.Client, emailSvc *email.Service, pushSvc *push.PushService) *Engine {
+	return &Engine{client: client, rdb: rdb, emailSvc: emailSvc, pushSvc: pushSvc}
 }
 
 // EvaluateCheck evaluates a completed monitor check using a state-driven transition matrix:
@@ -211,4 +213,12 @@ func (e *Engine) recordAlertEvent(ctx context.Context, m *ent.Monitor, alertType
 	}
 
 	log.Printf("[ALERT CREATED] id=%s tenant=%s monitor=%s type=%s message=%s", evt.ID, m.TenantID, m.ID, alertType, message)
+
+	if e.pushSvc != nil {
+		title := "🚨 Site Down"
+		if alertType == alertevent.TypeRecovery {
+			title = "✅ Site Recovered"
+		}
+		go e.pushSvc.SendTenantPushNotification(context.Background(), m.TenantID, title, message, "/alerts")
+	}
 }

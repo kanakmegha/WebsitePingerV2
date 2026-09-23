@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/kanakmegha/WebsitePingerV2/internal/auth"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
@@ -72,10 +73,24 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
+	// Validate and Hash Password with Argon2id
+	if len(req.Password) <6 {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "password must be at least 6 characters long"})
+		return
+	}
+
+	hashedPassword, err := auth.HashPassword(req.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
 	// 1. Create User
 	u, err := tx.User.Create().
 		SetEmail(req.Email).
-		SetPasswordHash(req.Password).
+		SetPasswordHash(hashedPassword).
 		Save(ctx)
 	if err != nil {
 		log.Printf("[AUTH REGISTER] Step 1 Failed - User creation error: %v\n", err)
@@ -166,7 +181,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	u, err := h.client.User.Query().
 		Where(user.Email(req.Email)).
 		Only(ctx)
-	if err != nil || u.PasswordHash != req.Password {
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid credentials"})
+		return
+	}
+
+	match, err := auth.VerifyPassword(u.PasswordHash, req.Password)
+	if err != nil || !match {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "invalid credentials"})
 		return

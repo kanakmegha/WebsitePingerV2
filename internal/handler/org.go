@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -14,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/kanakmegha/WebsitePingerV2/internal/auth"
 	"github.com/kanakmegha/WebsitePingerV2/internal/email"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/alertevent"
@@ -21,17 +23,20 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/user"
 	"github.com/kanakmegha/WebsitePingerV2/internal/middleware"
+	"github.com/kanakmegha/WebsitePingerV2/internal/push"
 )
 
 type OrgHandler struct {
 	client   *ent.Client
 	emailSvc *email.Service
+	pushSvc  *push.PushService
 }
 
-func NewOrgHandler(client *ent.Client, emailSvc *email.Service) *OrgHandler {
+func NewOrgHandler(client *ent.Client, emailSvc *email.Service, pushSvc *push.PushService) *OrgHandler {
 	return &OrgHandler{
 		client:   client,
 		emailSvc: emailSvc,
+		pushSvc:  pushSvc,
 	}
 }
 
@@ -76,7 +81,7 @@ func generateSecureToken() string {
 func resolveBaseURL() string {
 	baseURL := os.Getenv("APP_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:5173"
+		baseURL = "http://localhost:4001"
 	}
 	// Trim trailing slash to prevent double slash in generated invite URLs
 	if len(baseURL) > 0 && baseURL[len(baseURL)-1] == '/' {
@@ -189,6 +194,9 @@ func (h *OrgHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[ALERT CREATION ERROR] Failed to record invite_sent alert event for tenant=%s: %v\n", tenantID, evtErr)
 	} else {
 		log.Printf("[ALERT CREATED] id=%s tenant=%s type=invite_sent message=%s\n", evt.ID, tenantID, evtMsg)
+		if h.pushSvc != nil {
+			go h.pushSvc.SendTenantPushNotification(context.Background(), tenantID, "✉️ Invite Sent", evtMsg, "/alerts")
+		}
 	}
 
 	// Build dynamic environment-driven invite URL (APP_BASE_URL/invite/<token>)
@@ -367,9 +375,9 @@ func (h *OrgHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": "password is required to set up your account"})
 			return
 		}
-		if len(req.Password) < 6 {
+		if len(req.Password) < 8 {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "password must be at least 6 characters long"})
+			json.NewEncoder(w).Encode(map[string]string{"error": "password must be at least 8 characters long"})
 			return
 		}
 
@@ -397,9 +405,16 @@ func (h *OrgHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
 
 	// If new user, create User record inside transaction
 	if targetUserID == uuid.Nil {
+		hashedPassword, err := auth.HashPassword(req.Password)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
 		newUser, err := tx.User.Create().
 			SetEmail(inv.Email).
-			SetPasswordHash(req.Password).
+			SetPasswordHash(hashedPassword).
 			Save(ctx)
 		if err != nil {
 			log.Printf("[ORG ACCEPT] Failed to create user: %v\n", err)
@@ -466,6 +481,10 @@ func (h *OrgHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "failed to commit transaction"})
 		return
+	}
+
+	if h.pushSvc != nil {
+		go h.pushSvc.SendTenantPushNotification(context.Background(), inv.TenantID, "🎉 Member Joined", evtMsg, "/alerts")
 	}
 
 	// Generate JWT authentication token for user & tenant

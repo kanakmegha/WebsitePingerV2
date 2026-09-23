@@ -23,6 +23,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheck"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitorcheckconfig"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/sslcheckresult"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenantsetting"
@@ -98,6 +99,7 @@ func checkColumn(table, column string) error {
 			monitorcheck.Table:        monitorcheck.ValidColumn,
 			monitorcheckconfig.Table:  monitorcheckconfig.ValidColumn,
 			notificationchannel.Table: notificationchannel.ValidColumn,
+			pushsubscription.Table:    pushsubscription.ValidColumn,
 			sslcheckresult.Table:      sslcheckresult.ValidColumn,
 			tenant.Table:              tenant.ValidColumn,
 			tenantsetting.Table:       tenantsetting.ValidColumn,

@@ -34,9 +34,11 @@ type User struct {
 type UserEdges struct {
 	// Memberships holds the value of the memberships edge.
 	Memberships []*Membership `json:"memberships,omitempty"`
+	// PushSubscriptions holds the value of the push_subscriptions edge.
+	PushSubscriptions []*PushSubscription `json:"push_subscriptions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -46,6 +48,15 @@ func (e UserEdges) MembershipsOrErr() ([]*Membership, error) {
 		return e.Memberships, nil
 	}
 	return nil, &NotLoadedError{edge: "memberships"}
+}
+
+// PushSubscriptionsOrErr returns the PushSubscriptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PushSubscriptionsOrErr() ([]*PushSubscription, error) {
+	if e.loadedTypes[1] {
+		return e.PushSubscriptions, nil
+	}
+	return nil, &NotLoadedError{edge: "push_subscriptions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -114,6 +125,11 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryMemberships queries the "memberships" edge of the User entity.
 func (u *User) QueryMemberships() *MembershipQuery {
 	return NewUserClient(u.config).QueryMemberships(u)
+}
+
+// QueryPushSubscriptions queries the "push_subscriptions" edge of the User entity.
+func (u *User) QueryPushSubscriptions() *PushSubscriptionQuery {
+	return NewUserClient(u.config).QueryPushSubscriptions(u)
 }
 
 // Update returns a builder for updating this User.

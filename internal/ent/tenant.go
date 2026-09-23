@@ -47,9 +47,11 @@ type TenantEdges struct {
 	Invites []*Invite `json:"invites,omitempty"`
 	// AlertEvents holds the value of the alert_events edge.
 	AlertEvents []*AlertEvent `json:"alert_events,omitempty"`
+	// PushSubscriptions holds the value of the push_subscriptions edge.
+	PushSubscriptions []*PushSubscription `json:"push_subscriptions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -115,6 +117,15 @@ func (e TenantEdges) AlertEventsOrErr() ([]*AlertEvent, error) {
 		return e.AlertEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "alert_events"}
+}
+
+// PushSubscriptionsOrErr returns the PushSubscriptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e TenantEdges) PushSubscriptionsOrErr() ([]*PushSubscription, error) {
+	if e.loadedTypes[7] {
+		return e.PushSubscriptions, nil
+	}
+	return nil, &NotLoadedError{edge: "push_subscriptions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -213,6 +224,11 @@ func (t *Tenant) QueryInvites() *InviteQuery {
 // QueryAlertEvents queries the "alert_events" edge of the Tenant entity.
 func (t *Tenant) QueryAlertEvents() *AlertEventQuery {
 	return NewTenantClient(t.config).QueryAlertEvents(t)
+}
+
+// QueryPushSubscriptions queries the "push_subscriptions" edge of the Tenant entity.
+func (t *Tenant) QueryPushSubscriptions() *PushSubscriptionQuery {
+	return NewTenantClient(t.config).QueryPushSubscriptions(t)
 }
 
 // Update returns a builder for updating this Tenant.

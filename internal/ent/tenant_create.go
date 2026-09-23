@@ -17,6 +17,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/membership"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenantsetting"
 )
@@ -183,6 +184,21 @@ func (tc *TenantCreate) AddAlertEvents(a ...*AlertEvent) *TenantCreate {
 		ids[i] = a[i].ID
 	}
 	return tc.AddAlertEventIDs(ids...)
+}
+
+// AddPushSubscriptionIDs adds the "push_subscriptions" edge to the PushSubscription entity by IDs.
+func (tc *TenantCreate) AddPushSubscriptionIDs(ids ...uuid.UUID) *TenantCreate {
+	tc.mutation.AddPushSubscriptionIDs(ids...)
+	return tc
+}
+
+// AddPushSubscriptions adds the "push_subscriptions" edges to the PushSubscription entity.
+func (tc *TenantCreate) AddPushSubscriptions(p ...*PushSubscription) *TenantCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tc.AddPushSubscriptionIDs(ids...)
 }
 
 // Mutation returns the TenantMutation object of the builder.
@@ -402,6 +418,22 @@ func (tc *TenantCreate) createSpec() (*Tenant, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(alertevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.PushSubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.PushSubscriptionsTable,
+			Columns: []string{tenant.PushSubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pushsubscription.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

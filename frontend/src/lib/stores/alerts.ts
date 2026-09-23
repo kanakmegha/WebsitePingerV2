@@ -40,6 +40,18 @@ export const unreadCount = derived(alertStore, ($alerts) => {
 	return $alerts.filter((a) => a.status === 'unread').length;
 });
 
+if (typeof window !== 'undefined') {
+	unreadCount.subscribe(($count) => {
+		if ('setAppBadge' in navigator) {
+			if ($count > 0) {
+				navigator.setAppBadge($count).catch(() => {});
+			} else {
+				navigator.clearAppBadge().catch(() => {});
+			}
+		}
+	});
+}
+
 export const filteredAlerts = derived(
 	[alertStore, alertFilter],
 	([$alerts, $filter]) => {

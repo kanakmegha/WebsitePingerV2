@@ -49,6 +49,7 @@
 			goto('/');
 		} catch (err: any) {
 			errorMessage = err.message || 'Failed to create monitor';
+			toastStore.show(errorMessage, 'warning');
 		} finally {
 			isSubmitting = false;
 		}

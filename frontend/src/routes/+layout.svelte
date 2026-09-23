@@ -46,12 +46,12 @@
 	});
 </script>
 
-<div class="min-h-screen bg-slate-950 font-sans text-slate-100 antialiased selection:bg-emerald-500 selection:text-slate-950">
+<div class="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-950 font-sans text-slate-100 antialiased selection:bg-emerald-500 selection:text-slate-950 pb-safe">
 	<div class="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.12),rgba(255,255,255,0))]"></div>
 	
 	<Navbar />
 
-	<main class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+	<main class="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 overflow-x-hidden pb-safe">
 		{#if isBootstrapping && $isAuthenticated}
 			<div class="flex flex-col items-center justify-center py-24 space-y-4">
 				<div class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500/20 border-t-emerald-500"></div>

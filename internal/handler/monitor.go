@@ -161,6 +161,22 @@ func (h *MonitorHandler) Create(w http.ResponseWriter, r *http.Request) {
 		req.Name = domain
 	}
 
+	// Check if URL or domain already exists for this tenant
+	duplicateExists, err := h.client.Monitor.Query().
+		Where(
+			monitor.TenantID(tenantID),
+			monitor.Or(
+				monitor.URLEQ(req.URL),
+				monitor.DomainEQ(domain),
+			),
+		).
+		Exist(ctx)
+	if err == nil && duplicateExists {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "This URL already exists"})
+		return
+	}
+
 	// Transactional creation of Monitor & MonitorCheckConfig records
 	tx, err := h.client.Tx(ctx)
 	if err != nil {

@@ -20,6 +20,7 @@ import (
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/monitor"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/notificationchannel"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/predicate"
+	"github.com/kanakmegha/WebsitePingerV2/internal/ent/pushsubscription"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenant"
 	"github.com/kanakmegha/WebsitePingerV2/internal/ent/tenantsetting"
 )
@@ -38,6 +39,7 @@ type TenantQuery struct {
 	withSettings             *TenantSettingQuery
 	withInvites              *InviteQuery
 	withAlertEvents          *AlertEventQuery
+	withPushSubscriptions    *PushSubscriptionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -221,6 +223,28 @@ func (tq *TenantQuery) QueryAlertEvents() *AlertEventQuery {
 			sqlgraph.From(tenant.Table, tenant.FieldID, selector),
 			sqlgraph.To(alertevent.Table, alertevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, tenant.AlertEventsTable, tenant.AlertEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPushSubscriptions chains the current query on the "push_subscriptions" edge.
+func (tq *TenantQuery) QueryPushSubscriptions() *PushSubscriptionQuery {
+	query := (&PushSubscriptionClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenant.Table, tenant.FieldID, selector),
+			sqlgraph.To(pushsubscription.Table, pushsubscription.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenant.PushSubscriptionsTable, tenant.PushSubscriptionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -427,6 +451,7 @@ func (tq *TenantQuery) Clone() *TenantQuery {
 		withSettings:             tq.withSettings.Clone(),
 		withInvites:              tq.withInvites.Clone(),
 		withAlertEvents:          tq.withAlertEvents.Clone(),
+		withPushSubscriptions:    tq.withPushSubscriptions.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -510,6 +535,17 @@ func (tq *TenantQuery) WithAlertEvents(opts ...func(*AlertEventQuery)) *TenantQu
 	return tq
 }
 
+// WithPushSubscriptions tells the query-builder to eager-load the nodes that are connected to
+// the "push_subscriptions" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TenantQuery) WithPushSubscriptions(opts ...func(*PushSubscriptionQuery)) *TenantQuery {
+	query := (&PushSubscriptionClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withPushSubscriptions = query
+	return tq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -588,7 +624,7 @@ func (tq *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 	var (
 		nodes       = []*Tenant{}
 		_spec       = tq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			tq.withMemberships != nil,
 			tq.withMonitors != nil,
 			tq.withAlerts != nil,
@@ -596,6 +632,7 @@ func (tq *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 			tq.withSettings != nil,
 			tq.withInvites != nil,
 			tq.withAlertEvents != nil,
+			tq.withPushSubscriptions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -663,6 +700,13 @@ func (tq *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 		if err := tq.loadAlertEvents(ctx, query, nodes,
 			func(n *Tenant) { n.Edges.AlertEvents = []*AlertEvent{} },
 			func(n *Tenant, e *AlertEvent) { n.Edges.AlertEvents = append(n.Edges.AlertEvents, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withPushSubscriptions; query != nil {
+		if err := tq.loadPushSubscriptions(ctx, query, nodes,
+			func(n *Tenant) { n.Edges.PushSubscriptions = []*PushSubscription{} },
+			func(n *Tenant, e *PushSubscription) { n.Edges.PushSubscriptions = append(n.Edges.PushSubscriptions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -861,6 +905,36 @@ func (tq *TenantQuery) loadAlertEvents(ctx context.Context, query *AlertEventQue
 	}
 	query.Where(predicate.AlertEvent(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(tenant.AlertEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TenantQuery) loadPushSubscriptions(ctx context.Context, query *PushSubscriptionQuery, nodes []*Tenant, init func(*Tenant), assign func(*Tenant, *PushSubscription)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Tenant)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(pushsubscription.FieldTenantID)
+	}
+	query.Where(predicate.PushSubscription(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(tenant.PushSubscriptionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -34,6 +34,8 @@ type Tx struct {
 	MonitorCheckConfig *MonitorCheckConfigClient
 	// NotificationChannel is the client for interacting with the NotificationChannel builders.
 	NotificationChannel *NotificationChannelClient
+	// PushSubscription is the client for interacting with the PushSubscription builders.
+	PushSubscription *PushSubscriptionClient
 	// SSLCheckResult is the client for interacting with the SSLCheckResult builders.
 	SSLCheckResult *SSLCheckResultClient
 	// Tenant is the client for interacting with the Tenant builders.
@@ -184,6 +186,7 @@ func (tx *Tx) init() {
 	tx.MonitorCheck = NewMonitorCheckClient(tx.config)
 	tx.MonitorCheckConfig = NewMonitorCheckConfigClient(tx.config)
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
+	tx.PushSubscription = NewPushSubscriptionClient(tx.config)
 	tx.SSLCheckResult = NewSSLCheckResultClient(tx.config)
 	tx.Tenant = NewTenantClient(tx.config)
 	tx.TenantSetting = NewTenantSettingClient(tx.config)

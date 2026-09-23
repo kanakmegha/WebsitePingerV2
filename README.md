@@ -66,7 +66,7 @@ docker-compose up --build -d
 
 Services started:
 
-- `api`: `http://localhost:8080`
+- `api`: `http://localhost:4002`
 - `postgres`: `localhost:5432`
 - `redis`: `localhost:6379`
 - `scheduler`: Background ticker service
