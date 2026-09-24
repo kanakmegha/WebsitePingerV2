@@ -66,9 +66,10 @@ docker-compose up --build -d
 
 Services started:
 
-- `api`: `http://localhost:4002`
-- `postgres`: `localhost:5432`
-- `redis`: `localhost:6379`
+- `frontend`: `http://localhost:4001` (SvelteKit Web UI)
+- `api`: `http://localhost:4002` (Go REST API)
+- `postgres`: `localhost:5432` (PostgreSQL DB)
+- `redis`: `localhost:6379` (Redis Queue & Coalescer)
 - `scheduler`: Background ticker service
 - `worker`: Concurrent worker pool (50 goroutines)
 
