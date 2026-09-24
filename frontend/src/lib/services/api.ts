@@ -14,7 +14,8 @@ import { tenantStore } from "$lib/stores/tenant";
 import { authStore } from "$lib/stores/auth";
 import { get } from "svelte/store";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4002") + "/api";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4002") +
+	"/api";
 
 export function getAuthToken(): string {
 	if (typeof window !== "undefined") {
@@ -478,7 +479,9 @@ export async function deleteMonitor(monitorId: string): Promise<void> {
 	}
 }
 
-export async function fetchInviteDetails(token: string): Promise<InviteDetails> {
+export async function fetchInviteDetails(
+	token: string,
+): Promise<InviteDetails> {
 	const res = await fetch(`${API_BASE}/orgs/invite/${token}`);
 	if (!res.ok) {
 		const errData = await res.json().catch(() => ({}));
@@ -487,7 +490,12 @@ export async function fetchInviteDetails(token: string): Promise<InviteDetails> 
 	return await res.json();
 }
 
-export async function acceptInvite(token: string, password?: string): Promise<{ token?: string; tenant_id: string; role: string; user_id?: string }> {
+export async function acceptInvite(
+	token: string,
+	password?: string,
+): Promise<
+	{ token?: string; tenant_id: string; role: string; user_id?: string }
+> {
 	const res = await apiFetch("/orgs/accept-invite", {
 		method: "POST",
 		body: JSON.stringify({ token, password }),
@@ -510,7 +518,10 @@ export async function acceptInvite(token: string, password?: string): Promise<{ 
 	return data;
 }
 
-export async function inviteUser(email: string, role: string): Promise<PendingInvite> {
+export async function inviteUser(
+	email: string,
+	role: string,
+): Promise<PendingInvite> {
 	const res = await apiFetch("/orgs/invite", {
 		method: "POST",
 		body: JSON.stringify({ email, role }),
